@@ -6,14 +6,12 @@
   <title>Sparks ⚡</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #0f0f0f;
       color: #f0f0f0;
       min-height: 100vh;
     }
-
     /* ── Header ── */
     header {
       background: #1a1a1a;
@@ -22,9 +20,11 @@
       align-items: center;
       gap: 10px;
       border-bottom: 2px solid #2a2a2a;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
     header h1 { font-size: 1.5rem; letter-spacing: 1px; }
-    header span { font-size: 1.5rem; }
     .user-badge {
       margin-left: auto;
       background: #2a2a2a;
@@ -33,56 +33,59 @@
       font-size: 0.8rem;
       cursor: pointer;
     }
-
     /* ── Screens ── */
-    .screen { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
+    .screen { display: none; padding: 24px 20px; max-width: 600px; margin: 0 auto; }
     .screen.active { display: block; }
-
-    /* ── Onboarding ── */
-    .onboard-card {
+    /* ── Cards ── */
+    .card {
       background: #1a1a1a;
       border-radius: 16px;
       padding: 28px;
       margin-top: 20px;
     }
-    .onboard-card h2 { margin-bottom: 8px; font-size: 1.3rem; }
-    .onboard-card p  { color: #888; font-size: 0.9rem; margin-bottom: 24px; }
-
-    label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #aaa; }
-
-    select, input {
+    .card h2 { font-size: 1.3rem; margin-bottom: 8px; }
+    .card .subtitle {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+    /* ── Form elements ── */
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.82rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    select {
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       border-radius: 10px;
       border: 1px solid #333;
       background: #2a2a2a;
       color: #f0f0f0;
       font-size: 1rem;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
-
-    .role-toggle {
+    select:focus { outline: none; border-color: #4CAF50; }
+    /* ── Divider ── */
+    .divider {
       display: flex;
-      gap: 10px;
-      margin-bottom: 18px;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0 20px;
+      color: #555;
+      font-size: 0.85rem;
     }
-    .role-btn {
+    .divider::before, .divider::after {
+      content: '';
       flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: 2px solid #333;
+      height: 1px;
       background: #2a2a2a;
-      color: #aaa;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.2s;
     }
-    .role-btn.selected {
-      border-color: #4CAF50;
-      color: #4CAF50;
-      background: #1a2e1a;
-    }
-
+    /* ── Buttons ── */
     .btn-primary {
       width: 100%;
       padding: 14px;
@@ -94,107 +97,263 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
+      margin-bottom: 12px;
     }
     .btn-primary:hover { background: #43a047; }
-    .btn-primary:disabled { background: #333; color: #666; cursor: not-allowed; }
-
-    /* ── Grid Screen ── */
-    .grid-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+    .btn-primary:disabled { background: #2a2a2a; color: #555; cursor: not-allowed; }
+    .btn-visitor {
+      width: 100%;
+      padding: 14px;
+      background: #1e1e2e;
+      color: #a0a0f0;
+      border: 2px solid #3a3a5a;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    .grid-header h2 { font-size: 1.1rem; }
-
-    .legend {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-      font-size: 0.78rem;
-      color: #aaa;
+    .btn-visitor:hover { background: #252535; border-color: #5a5a8a; }
+    .btn-back {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: #666;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-top: 8px;
     }
-    .legend span { display: flex; align-items: center; gap: 4px; }
-    .dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .dot.green  { background: #4CAF50; }
-    .dot.red    { background: #f44336; }
-    .dot.amber  { background: #FF9800; }
-    .dot.grey   { background: #555; }
-
-    .carpark-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 24px;
-    }
-
-    .park-tile {
-      aspect-ratio: 1;
-      border-radius: 12px;
+    .btn-back:hover { color: #aaa; border-color: #444; }
+    /* ── Choice cards ── */
+    .choice-grid {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: transform 0.15s, opacity 0.2s;
-      border: 2px solid transparent;
-      position: relative;
+      gap: 12px;
+      margin-bottom: 20px;
     }
-    .park-tile:active { transform: scale(0.94); }
-    .park-tile .park-num  { font-size: 1.2rem; font-weight: 700; }
-    .park-tile .park-name { font-size: 0.55rem; color: rgba(255,255,255,0.7); margin-top: 2px; text-align: center; padding: 0 2px; }
-
-    .park-tile.available  { background: #1a2e1a; border-color: #4CAF50; }
-    .park-tile.occupied   { background: #2e1a1a; border-color: #f44336; opacity: 0.7; cursor: default; }
-    .park-tile.pending    { background: #2e2010; border-color: #FF9800; }
-    .park-tile.unassigned { background: #1e1e1e; border-color: #555; }
-
-    /* ── My Park Panel ── */
-    .my-park-panel {
+    .choice-card {
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px solid #2a2a2a;
+      background: #222;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .choice-card:hover { border-color: #444; }
+    .choice-card.selected { border-color: #4CAF50; background: #1a2e1a; }
+    .choice-card .choice-icon { font-size: 1.6rem; }
+    .choice-card .choice-text h4 { font-size: 0.95rem; margin-bottom: 2px; }
+    .choice-card .choice-text p { font-size: 0.8rem; color: #888; }
+    /* ── Park number grid (onboarding) ── */
+    .park-num-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .park-num-btn {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 2px solid #2a2a2a;
+      background: #222;
+      color: #f0f0f0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .park-num-btn:hover { border-color: #4CAF50; }
+    .park-num-btn.selected { border-color: #4CAF50; background: #1a2e1a; color: #4CAF50; }
+    .park-num-btn.taken { border-color: #333; background: #1a1a1a; color: #444; cursor: not-allowed; }
+    /* ── Status banner ── */
+    .status-banner {
+      display: none;
+      padding: 14px 18px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .status-banner.waiting  { display:block; background:#2a1e10; border:1px solid #FF9800; color:#FF9800; }
+    .status-banner.approved { display:block; background:#1a2e1a; border:1px solid #4CAF50; color:#4CAF50; }
+    .status-banner.rejected { display:block; background:#2e1a1a; border:1px solid #f44336; color:#f44336; }
+    /* ── Release button ── */
+    .btn-release {
+      width: 100%;
+      padding: 13px;
+      background: #b71c1c;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+      display: none;
+    }
+    /* ── Owner panel ── */
+    .owner-panel {
       background: #1a1a1a;
       border-radius: 16px;
       padding: 20px;
       margin-bottom: 20px;
     }
-    .my-park-panel h3 { font-size: 1rem; margin-bottom: 14px; color: #aaa; }
-
-    .availability-toggle {
-      display: flex;
-      gap: 10px;
-    }
+    .owner-panel h3 { font-size: 0.95rem; color: #aaa; margin-bottom: 14px; }
+    .avail-row { display: flex; gap: 10px; }
     .avail-btn {
-      flex: 1;
-      padding: 12px;
+      flex: 1; padding: 12px;
       border-radius: 10px;
-      border: 2px solid #333;
-      background: #2a2a2a;
-      color: #aaa;
+      border: 2px solid #2a2a2a;
+      background: #222;
+      color: #888;
       font-size: 0.9rem;
       cursor: pointer;
       transition: all 0.2s;
+      font-weight: 500;
     }
-    .avail-btn.active-yes {
-      border-color: #4CAF50;
+    .avail-btn.yes { border-color: #4CAF50; background: #1a2e1a; color: #4CAF50; }
+    .avail-btn.no  { border-color: #f44336; background: #2e1a1a; color: #f44336; }
+    /* ══════════════════════════════
+       CARPARK LAYOUT
+    ══════════════════════════════ */
+    .carpark-wrap {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 12px;
+    }
+    .carpark-map {
+      position: relative;
+      width: 560px;
+      height: 720px;
+      background: #141414;
+      border-radius: 12px;
+      border: 2px solid #2a2a2a;
+      margin: 0 auto;
+    }
+    /* ── Lane arrows ── */
+    .lane-arrow {
+      position: absolute;
+      color: #2a2a2a;
+      font-size: 2rem;
+      user-select: none;
+    }
+    /* ── Zone labels ── */
+    .zone-block {
+      position: absolute;
+      background: #1e1e1e;
+      border: 2px solid #2a2a2a;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 0.65rem;
+      color: #555;
+      line-height: 1.3;
+    }
+    /* ── Central island ── */
+    .central-island {
+      position: absolute;
+      background: #1a1a1a;
+      border: 2px solid #2a2a2a;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+      text-align: center;
+    }
+    .central-island span {
+      font-size: 0.6rem;
+      color: #444;
+      line-height: 1.3;
+    }
+    /* ── Park tile base ── */
+    .park {
+      position: absolute;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+      border: 2px solid #2a2a2a;
+      transition: transform 0.15s, border-color 0.2s;
+      overflow: hidden;
+    }
+    .park .pnum {
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .park .pname {
+      font-size: 0.5rem;
+      line-height: 1.2;
+      text-align: center;
+      padding: 0 2px;
+      margin-top: 2px;
+      opacity: 0.8;
+    }
+    /* ── Park status colours ── */
+    .park.unavailable {
+      background: #1a1a1a;
+      border-color: #2a2a2a;
+      color: #444;
+      cursor: not-allowed;
+    }
+    .park.available {
       background: #1a2e1a;
-      color: #4CAF50;
+      border-color: #4CAF50;
+      color: #f0f0f0;
+      cursor: pointer;
     }
-    .avail-btn.active-no {
+    .park.available:active { transform: scale(0.93); }
+    .park.occupied {
+      background: #2a1a1a;
       border-color: #f44336;
-      background: #2e1a1a;
-      color: #f44336;
+      color: #f0f0f0;
+      opacity: 0.7;
     }
-
+    .park.pending {
+      background: #2a1e10;
+      border-color: #FF9800;
+      color: #f0f0f0;
+    }
+    .park.my-park {
+      box-shadow: 0 0 0 3px rgba(76,175,80,0.45);
+    }
+    /* ── Team colour tints (subtle, on unavailable parks) ── */
+    .park.team-green.unavailable  { border-color: #2d4a2d; color: #3a6b3a; }
+    .park.team-pink.unavailable   { border-color: #4a2d3a; color: #6b3a55; }
+    .park.team-blue.unavailable   { border-color: #2d3a4a; color: #3a556b; }
+    .park.team-grey.unavailable   { border-color: #2a2a2a; color: #444; }
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      font-size: 0.78rem;
+      color: #888;
+    }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.green  { background: #4CAF50; }
+    .dot.red    { background: #f44336; }
+    .dot.amber  { background: #FF9800; }
+    .dot.grey   { background: #333; }
     /* ── Modal ── */
     .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.75);
       z-index: 100;
       align-items: center;
       justify-content: center;
@@ -203,25 +362,25 @@
     .modal-overlay.active { display: flex; }
     .modal {
       background: #1a1a1a;
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 28px;
       width: 100%;
-      max-width: 380px;
+      max-width: 360px;
     }
-    .modal h3 { margin-bottom: 10px; }
-    .modal p  { color: #aaa; font-size: 0.9rem; margin-bottom: 24px; }
+    .modal h3 { font-size: 1.15rem; margin-bottom: 10px; }
+    .modal p  { color: #888; font-size: 0.88rem; margin-bottom: 24px; line-height: 1.5; }
     .modal-btns { display: flex; gap: 10px; }
     .btn-yes {
       flex: 1; padding: 13px;
       background: #4CAF50; color: white;
       border: none; border-radius: 10px;
-      font-size: 1rem; font-weight: 600; cursor: pointer;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
     }
     .btn-no {
       flex: 1; padding: 13px;
-      background: #f44336; color: white;
+      background:        #f44336; color: white;
       border: none; border-radius: 10px;
-      font-size: 1rem; font-weight: 600; cursor: pointer;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
     }
 
     /* ── Toast ── */
@@ -229,173 +388,857 @@
       position: fixed;
       bottom: 30px;
       left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #333;
+      transform: translateX(-50%) translateY(120px);
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
       color: #fff;
-      padding: 12px 24px;
+      padding: 12px 22px;
       border-radius: 30px;
-      font-size: 0.9rem;
-      transition: transform 0.3s;
-      z-index: 200;
-      white-space: nowrap;
+      font-size: 0.88rem;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 300;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
 
-    /* ── Status Banner ── */
-    .status-banner {
-      display: none;
-      padding: 14px 18px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    .status-banner.waiting {
-      display: block;
-      background: #2e2010;
-      border: 1px solid #FF9800;
-      color: #FF9800;
-    }
-    .status-banner.approved {
-      display: block;
-      background: #1a2e1a;
-      border: 1px solid #4CAF50;
-      color: #4CAF50;
-    }
-    .status-banner.rejected {
-      display: block;
-      background: #2e1a1a;
-      border: 1px solid #f44336;
-      color: #f44336;
-    }
+    /* ── Angled parks ── */
+    .park.angled { transform-origin: center center; }
+    .park.angled-30 { transform: rotate(-30deg); }
+    .park.angled-30:active { transform: rotate(-30deg) scale(0.93); }
 
-    .release-btn {
-      width: 100%;
-      padding: 14px;
-      background: #f44336;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 16px;
-      display: none;
-    }
   </style>
 </head>
-<body>
 
-<!-- Header -->
+<body>
 <header>
   <span>⚡</span>
   <h1>Sparks</h1>
-  <div class="user-badge" onclick="resetUser()" id="userBadge">Set up →</div>
+  <div class="user-badge" id="userBadge" onclick="resetUser()">Set up →</div>
 </header>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
-
-<!-- ════════════════════════════════
-     SCREEN 1 – Onboarding
-════════════════════════════════ -->
-<div class="screen active" id="screen-onboard">
-  <div class="onboard-card">
+<!-- SCREEN 1a: Who are you? -->
+<div class="screen active" id="screen-who">
+  <div class="card">
     <h2>Welcome to Sparks ⚡</h2>
-    <p>Sony carpark sharing — quick, simple, live.</p>
-
-    <label>Who are you?</label>
-    <select id="nameSelect" onchange="onNameChange()">
-      <option value="">— Select your name —</option>
-      <optgroup label="Staff">
-        <!-- Placeholder names - replace with real staff list -->
-        <option value="staff_1">Alex Johnson</option>
-        <option value="staff_2">Jordan Lee</option>
-        <option value="staff_3">Morgan Smith</option>
-        <option value="staff_4">Casey Williams</option>
-        <option value="staff_5">Riley Brown</option>
-        <option value="staff_6">Taylor Davis</option>
-        <option value="staff_7">Sam Wilson</option>
-        <option value="staff_8">Drew Martinez</option>
-        <option value="staff_9">Quinn Anderson</option>
-        <option value="staff_10">Jamie Thomas</option>
-      </optgroup>
-      <optgroup label="Guest">
-        <option value="guest_1">Guest of Alex Johnson</option>
-        <option value="guest_2">Guest of Jordan Lee</option>
-        <option value="guest_3">Guest of Morgan Smith</option>
-        <option value="guest_4">Guest of Casey Williams</option>
-        <option value="guest_5">Guest of Riley Brown</option>
-        <option value="guest_6">Guest of Taylor Davis</option>
-        <option value="guest_7">Guest of Sam Wilson</option>
-        <option value="guest_8">Guest of Drew Martinez</option>
-        <option value="guest_9">Guest of Quinn Anderson</option>
-        <option value="guest_10">Guest of Jamie Thomas</option>
-      </optgroup>
+    <p class="subtitle">Sony carpark sharing — quick, simple, live.</p>
+    <label>Select your name</label>
+    <select id="staffSelect" onchange="onStaffSelected()">
+      <option value="">— I'm a staff member —</option>
+      <option value="Teri">Teri</option>
+      <option value="Luke">Luke</option>
+      <option value="Richard">Richard</option>
+      <option value="Tim">Tim</option>
+      <option value="Kevin">Kevin</option>
+      <option value="Dan">Dan</option>
+      <option value="Rob">Rob</option>
+      <option value="Andrew">Andrew</option>
+      <option value="Mark Churton">Mark Churton</option>
+      <option value="Aaron">Aaron</option>
+      <option value="Rafael">Rafael</option>
+      <option value="Jo">Jo</option>
+      <option value="Sam">Sam</option>
+      <option value="Mark F">Mark F</option>
+      <option value="Jeffrey">Jeffrey</option>
+      <option value="Chris">Chris</option>
+      <option value="Jenny">Jenny</option>
     </select>
-
-    <!-- Role selection - only shown for staff -->
-    <div id="roleSection" style="display:none">
-      <label>Your role today</label>
-      <div class="role-toggle">
-        <button class="role-btn" id="roleOwner" onclick="selectRole('owner')">
-          🅿️ I have a park
-        </button>
-        <button class="role-btn" id="roleDriver" onclick="selectRole('driver')">
-          🚗 Looking for a park
-        </button>
-      </div>
-
-      <!-- Park number - only for owners -->
-      <div id="parkSelectSection" style="display:none">
-        <label>Your allocated park number</label>
-        <select id="parkSelect">
-          <option value="">— Select park number —</option>
-          <!-- Generated by JS -->
-        </select>
-      </div>
-    </div>
-
-    <button class="btn-primary" id="beginBtn" onclick="completeOnboarding()" disabled>
-      Let's go ⚡
-    </button>
+    <div class="divider">or</div>
+    <button class="btn-visitor" onclick="goVisitor()">👤 I'm a Visitor</button>
   </div>
 </div>
-
-<!-- ════════════════════════════════
-     SCREEN 2 – Carpark Grid
-════════════════════════════════ -->
+<!-- SCREEN 1b: Staff role choice -->
+<div class="screen" id="screen-staff-role">
+  <div class="card">
+    <h2 id="staffGreeting">Hi! 👋</h2>
+    <p class="subtitle">How are you using Sparks today?</p>
+    <div class="choice-grid">
+      <div class="choice-card" id="choiceOwner" onclick="selectStaffRole('owner')">
+        <div class="choice-icon">🅿️</div>
+        <div class="choice-text">
+          <h4>I have an allocated park</h4>
+          <p>Manage your park availability</p>
+        </div>
+      </div>
+      <div class="choice-card" id="choiceDriver" onclick="selectStaffRole('driver')">
+        <div class="choice-icon">🚗</div>
+        <div class="choice-text">
+          <h4>I need a park today</h4>
+          <p>Find an available space</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" id="staffRoleBtn" onclick="confirmStaffRole()" disabled>
+      Continue →
+    </button>
+    <button class="btn-back" onclick="showScreen('screen-who')">← Back</button>
+  </div>
+</div>
+<!-- SCREEN 1c: Park owner setup -->
+<div class="screen" id="screen-park-setup">
+  <div class="card">
+    <h2>Your Park Number</h2>
+    <p class="subtitle">Which park is allocated to you?</p>
+    <div class="park-num-grid" id="parkNumGrid"></div>
+    <button class="btn-primary" id="parkSetupBtn" onclick="confirmParkSetup()" disabled>
+      Save &amp; Continue →
+    </button>
+    <button class="btn-back" onclick="showScreen('screen-staff-role')">← Back</button>
+  </div>
+</div>
+<!-- SCREEN 1d: Visitor -->
+<div class="screen" id="screen-visitor">
+  <div class="card">
+    <h2>Welcome! 👋</h2>
+    <p class="subtitle">Who are you visiting today?</p>
+    <label>Guest of...</label>
+    <select id="guestOfSelect" onchange="onGuestSelected()">
+      <option value="">— Select a staff member —</option>
+      <option value="Teri">Teri</option>
+      <option value="Luke">Luke</option>
+      <option value="Richard">Richard</option>
+      <option value="Tim">Tim</option>
+      <option value="Kevin">Kevin</option>
+      <option value="Dan">Dan</option>
+      <option value="Rob">Rob</option>
+      <option value="Andrew">Andrew</option>
+      <option value="Mark Churton">Mark Churton</option>
+      <option value="Aaron">Aaron</option>
+      <option value="Rafael">Rafael</option>
+      <option value="Jo">Jo</option>
+      <option value="Sam">Sam</option>
+      <option value="Mark F">Mark F</option>
+      <option value="Jeffrey">Jeffrey</option>
+      <option value="Chris">Chris</option>
+      <option value="Jenny">Jenny</option>
+    </select>
+    <button class="btn-primary" id="guestContinueBtn" onclick="confirmVisitor()" disabled>
+      Continue →
+    </button>
+    <button class="btn-back" onclick="showScreen('screen-who')">← Back</button>
+  </div>
+</div>
+<!-- SCREEN 2: Carpark Grid -->
 <div class="screen" id="screen-grid">
-
-  <!-- Status banner for drivers waiting -->
   <div class="status-banner" id="statusBanner"></div>
-
-  <!-- Release button -->
-  <button class="release-btn" id="releaseBtn" onclick="releasePark()">
+  <button class="btn-release" id="releaseBtn" onclick="releasePark()">
     🚗 Release My Park
   </button>
-
-  <!-- Owner's park controls -->
-  <div class="my-park-panel" id="myParkPanel" style="display:none">
-    <h3>⚡ Your Park: <span id="myParkNum">—</span></h3>
-    <p style="font-size:0.85rem; color:#888; margin-bottom:12px;">
+  <div class="owner-panel" id="ownerPanel" style="display:none">
+    <h3>⚡ Your Park: <strong id="ownerParkNum">—</strong></h3>
+    <p style="font-size:0.82rem; color:#666; margin-bottom:12px;">
       Is your park available today?
     </p>
-    <div class="availability-toggle">
-      <button class="avail-btn" id="availYes" onclick="setMyAvailability(true)">
+    <div class="avail-row">
+      <button class="avail-btn" id="availBtnYes" onclick="setAvailability(true)">
         ✅ Available
       </button>
-      <button class="avail-btn" id="availNo" onclick="setMyAvailability(false)">
+      <button class="avail-btn" id="availBtnNo" onclick="setAvailability(false)">
         ❌ I'm using it
       </button>
     </div>
   </div>
-
-  <!-- Grid -->
-  <div class="grid-header">
-    <h2>Carparks</h2>
-    <span style="font-size:0.8rem; color:#666;">Tap green to request</span>
-  </div>
-
   <div class="legend">
-    <span><i class
+    <span><i class="dot green"></i> Available</span>
+    <span><i class="dot red"></i> Occupied</span>
+    <span><i class="dot amber"></i> Pending</span>
+    <span><i class="dot grey"></i> Unavailable</span>
+  </div>
+  <div class="carpark-wrap">
+    <div class="carpark-map" id="carparkMap"></div>
+  </div>
+</div>
+<!-- Request Modal -->
+<div class="modal-overlay" id="requestModal">
+  <div class="modal">
+    <h3>Request this park?</h3>
+    <p id="requestModalText">Send a request to the park owner?</p>
+    <div class="modal-btns">
+      <button class="btn-yes" onclick="confirmRequest()">✅ Yes, request</button>
+      <button class="btn-no" onclick="closeModal()">✗ Cancel</button>
+    </div>
+  </div>
+</div>
+<!-- Owner Approval Modal -->
+<div class="modal-overlay" id="approvalModal">
+  <div class="modal">
+    <h3>Park Request 🅿️</h3>
+    <p id="approvalModalText">Someone is requesting your park.</p>
+    <div class="modal-btns">
+      <button class="btn-yes" onclick="respondToRequest(true)">✅ Yes</button>
+      <button class="btn-no" onclick="respondToRequest(false)">❌ No</button>
+    </div>
+  </div>
+</div>
+
+<!-- END OF PART B -->
+
+
+<script type="module">
+  // ══════════════════════════════
+  // FIREBASE IMPORTS
+  // ══════════════════════════════
+  import { initializeApp }          from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set,
+           onValue, update }        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ══════════════════════════════
+  // FIREBASE CONFIG
+  // ══════════════════════════════
+  const firebaseConfig = {
+    apiKey:            "AIzaSyC9yQEhnXNXxS2eQD7wEtM4sC0L5lfPyt8",
+    authDomain:        "sparks-carpark.firebaseapp.com",
+    databaseURL:       "https://sparks-carpark-default-rtdb.firebaseio.com",
+    projectId:         "sparks-carpark",
+    storageBucket:     "sparks-carpark.firebasestorage.app",
+    messagingSenderId: "915030946438",
+    appId:             "1:915030946438:web:568f2e3d58f5e0394e1707"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  // ══════════════════════════════
+  // PARK DATA
+  // ══════════════════════════════
+  const PARKS = [
+    { num: 1,  name: 'SME',           team: 'grey',   yellow: false, x: 10,  y: 620, w: 60, h: 44, angle: 0 },
+    { num: 2,  name: 'Peggie',        team: 'pink',   yellow: false, x: 10,  y: 574, w: 60, h: 44, angle: 0 },
+    { num: 3,  name: 'Justine',       team: 'pink',   yellow: false, x: 10,  y: 528, w: 60, h: 44, angle: 0 },
+    { num: 4,  name: 'Rebecca',       team: 'pink',   yellow: false, x: 10,  y: 482, w: 60, h: 44, angle: 0 },
+    { num: 5,  name: 'Jacinda',       team: 'pink',   yellow: false, x: 10,  y: 436, w: 60, h: 44, angle: 0 },
+    { num: 6,  name: 'Lizzie',        team: 'green',  yellow: false, x: 10,  y: 390, w: 60, h: 44, angle: 0 },
+    { num: 7,  name: 'SME',           team: 'grey',   yellow: false, x: 10,  y: 344, w: 60, h: 44, angle: 0 },
+    { num: 8,  name: 'SME',           team: 'grey',   yellow: false, x: 10,  y: 298, w: 60, h: 44, angle: 0 },
+    { num: 9,  name: 'Jaden',         team: 'grey',   yellow: false, x: 10,  y: 252, w: 60, h: 44, angle: 0 },
+    { num: 10, name: 'Meri',          team: 'grey',   yellow: false, x: 10,  y: 206, w: 60, h: 44, angle: 0 },
+    { num: 11, name: 'SME',           team: 'grey',   yellow: false, x: 10,  y: 160, w: 60, h: 44, angle: 0 },
+    { num: 12, name: 'FVLB',          team: 'grey',   yellow: false, x: 10,  y: 114, w: 60, h: 44, angle: 0 },
+    { num: 13, name: 'Gareth',        team: 'green',  yellow: false, x: 10,  y: 10,  w: 60, h: 44, angle: 0 },
+    { num: 14, name: 'Tony',          team: 'grey',   yellow: false, x: 76,  y: 10,  w: 60, h: 44, angle: 0 },
+    { num: 15, name: 'Dani',          team: 'green',  yellow: false, x: 142, y: 10,  w: 60, h: 44, angle: 0 },
+    { num: 16, name: 'Hype\nStorage', team: 'grey',   yellow: false, x: 208, y: 10,  w: 80, h: 60, angle: 0, isZone: true },
+    { num: 17, name: 'Kristie',       team: 'blue',   yellow: false, x: 295, y: 14,  w: 58, h: 40, angle: -30 },
+    { num: 18, name: 'Luke',          team: 'yellow', yellow: true,  x: 338, y: 34,  w: 58, h: 40, angle: -30 },
+    { num: 19, name: 'Richard',       team: 'yellow', yellow: true,  x: 381, y: 54,  w: 58, h: 40, angle: -30 },
+    { num: 20, name: 'Teri',          team: 'yellow', yellow: true,  x: 424, y: 74,  w: 58, h: 40, angle: -30 },
+    { num: 21, name: 'Tim',           team: 'yellow', yellow: true,  x: 424, y: 120, w: 58, h: 40, angle: -30 },
+    { num: 22, name: 'Kevin',         team: 'yellow', yellow: true,  x: 424, y: 166, w: 58, h: 40, angle: -30 },
+    { num: 23, name: 'Dan',           team: 'yellow', yellow: true,  x: 490, y: 10,  w: 60, h: 44, angle: 0 },
+    { num: 24, name: 'Rob',           team: 'yellow', yellow: true,  x: 490, y: 60,  w: 60, h: 44, angle: 0 },
+    { num: 25, name: 'Andrew',        team: 'yellow', yellow: true,  x: 490, y: 110, w: 60, h: 44, angle: 0 },
+    { num: 26, name: 'Mark C',        team: 'yellow', yellow: true,  x: 490, y: 160, w: 60, h: 44, angle: 0 },
+    { num: 27, name: 'Aaron',         team: 'yellow', yellow: true,  x: 490, y: 210, w: 60, h: 44, angle: 0 },
+    { num: 28, name: 'SEL',           team: 'yellow', yellow: true,  x: 490, y: 260, w: 60, h: 44, angle: 0 },
+    { num: 29, name: 'Rafael',        team: 'yellow', yellow: true,  x: 490, y: 310, w: 60, h: 44, angle: 0 },
+    { num: 30, name: 'Susan',         team: 'pink',   yellow: false, x: 490, y: 360, w: 60, h: 44, angle: 0 },
+    { num: 31, name: 'Emily',         team: 'yellow', yellow: true,  x: 490, y: 410, w: 60, h: 44, angle: 0 },
+    { num: 32, name: 'SEL',           team: 'grey',   yellow: false, x: 490, y: 460, w: 60, h: 44, angle: 0 },
+    { num: 33, name: 'FVLB',          team: 'grey',   yellow: false, x: 490, y: 510, w: 60, h: 44, angle: 0 },
+    { num: 34, name: 'Benefit',       team: 'grey',   yellow: false, x: 490, y: 560, w: 60, h: 100, angle: 0, isZone: true },
+    { num: 35, name: 'Jo',            team: 'yellow', yellow: true,  x: 360, y: 390, w: 58, h: 40, angle: 0 },
+    { num: 36, name: 'SEL',           team: 'grey',   yellow: false, x: 360, y: 436, w: 58, h: 40, angle: 0 },
+    { num: 37, name: 'Sam',           team: 'yellow', yellow: true,  x: 360, y: 482, w: 58, h: 40, angle: 0 },
+    { num: 38, name: 'Mark F',        team: 'yellow', yellow: true,  x: 360, y: 528, w: 58, h: 40, angle: 0 },
+    { num: 39, name: 'BBnT',          team: 'grey',   yellow: false, x: 360, y: 220, w: 58, h: 40, angle: 0, isZone: true },
+    { num: 40, name: 'Liv',           team: 'grey',   yellow: false, x: 360, y: 266, w: 58, h: 40, angle: 0 },
+    { num: 41, name: 'SME',           team: 'grey',   yellow: false, x: 360, y: 312, w: 58, h: 40, angle: 0 },
+    { num: 42, name: 'Carl',          team: 'blue',   yellow: false, x: 296, y: 220, w: 58, h: 40, angle: 0 },
+    { num: 43, name: 'Benefit',       team: 'grey',   yellow: false, x: 296, y: 266, w: 58, h: 40, angle: 0, isZone: true },
+    { num: 44, name: 'Kim',           team: 'green',  yellow: false, x: 296, y: 312, w: 58, h: 40, angle: 0 },
+    { num: 45, name: 'Jeffrey',       team: 'yellow', yellow: true,  x: 296, y: 390, w: 58, h: 40, angle: 0 },
+    { num: 46, name: 'Justin',        team: 'blue',   yellow: false, x: 296, y: 436, w: 58, h: 40, angle: 0 },
+    { num: 47, name: 'Chris',         team: 'yellow', yellow: true,  x: 296, y: 482, w: 58, h: 40, angle: 0 },
+    { num: 48, name: 'Jenny',         team: 'yellow', yellow: true,  x: 296, y: 528, w: 58, h: 40, angle: 0 },
+  ];
+
+  const STAFF = [
+    { name: 'Teri',         park: 20 },
+    { name: 'Luke',         park: 18 },
+    { name: 'Richard',      park: 19 },
+    { name: 'Tim',          park: 21 },
+    { name: 'Kevin',        park: 22 },
+    { name: 'Dan',          park: 23 },
+    { name: 'Rob',          park: 24 },
+    { name: 'Andrew',       park: 25 },
+    { name: 'Mark Churton', park: 26 },
+    { name: 'Aaron',        park: 27 },
+    { name: 'SEL',          park: 28 },
+    { name: 'Rafael',       park: 29 },
+    { name: 'Jo',           park: 35 },
+    { name: 'Sam',          park: 37 },
+    { name: 'Mark F',       park: 38 },
+    { name: 'Jeffrey',      park: 45 },
+    { name: 'Chris',        park: 47 },
+    { name: 'Jenny',        park: 48 },
+  ];
+
+  // Local park states (synced from Firebase)
+  let parkStates = {};
+  PARKS.forEach(p => {
+    parkStates[p.num] = {
+      status:    p.yellow && !p.isZone ? 'available' : 'unavailable',
+      claimedBy: null,
+      requestedBy: null,
+    };
+  });
+
+  // Current user session
+  let currentUser = {
+    name:        null,
+    role:        null,
+    parkNum:     null,
+    guestOf:     null,
+    claimedPark: null,
+  };
+
+  let selectedStaffRole  = null;
+  let selectedParkNum    = null;
+  let pendingRequestPark = null;
+
+  // ══════════════════════════════
+  // FIREBASE LISTENERS
+  // ══════════════════════════════
+  const parksRef = ref(db, 'parks');
+  onValue(parksRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      Object.keys(data).forEach(num => {
+        const n = parseInt(num);
+        if (parkStates[n]) {
+          parkStates[n] = { ...parkStates[n], ...data[num] };
+        }
+      });
+    }
+
+    // Rebuild map if on grid screen
+    if (document.getElementById('screen-grid').classList.contains('active')) {
+      buildMap();
+    }
+
+    // Check if driver's request was responded to
+    if (currentUser.claimedPark === null) {
+      PARKS.forEach(p => {
+        const state = parkStates[p.num];
+        if (state.requestedBy === currentUser.name) {
+          if (state.status === 'occupied') {
+            currentUser.claimedPark = p.num;
+            document.getElementById('releaseBtn').style.display = 'block';
+            showStatusBanner('approved',
+              '✅ Approved! Park #' + p.num + ' is yours. Tap Release when you leave.'
+            );
+          } else if (state.status === 'available' && state.requestedBy === currentUser.name) {
+            showStatusBanner('rejected',
+              '❌ Sorry, Park #' + p.num +
+              ' is not available. Please try another.'
+            );
+            update(ref(db, 'parks/' + p.num), { requestedBy: null });
+          }
+        }
+      });
+    }
+
+    // Check if owner has an incoming request
+    if (currentUser.role === 'owner' && currentUser.parkNum) {
+      const state = parkStates[currentUser.parkNum];
+      if (state.status === 'pending' && state.requestedBy &&
+          pendingRequestPark !== currentUser.parkNum) {
+        pendingRequestPark = currentUser.parkNum;
+        triggerOwnerApproval(currentUser.parkNum);
+      }
+    }
+  });
+
+  // ══════════════════════════════
+  // BUILD CAR
+  // PARK MAP
+  // ══════════════════════════════
+
+  function buildMap() {
+    const map = document.getElementById('carparkMap');
+    map.innerHTML = '';
+
+    // Central island
+    const island = document.createElement('div');
+    island.className = 'central-island';
+    island.style.cssText = 'left:170px; top:220px; width:120px; height:350px;';
+    island.innerHTML = `
+      <span>🚪 Stairs</span>
+      <span>🛗 Lift</span>
+      <span>🚲 Bikes</span>
+      <span>🔧 Service</span>
+    `;
+    map.appendChild(island);
+
+    // Lane arrows
+    [300, 440].forEach(x => {
+      ['340px', '500px'].forEach(top => {
+        const arrow = document.createElement('div');
+        arrow.className = 'lane-arrow';
+        arrow.style.cssText = `left:${x}px; top:${top};`;
+        arrow.textContent = '↓';
+        map.appendChild(arrow);
+      });
+    });
+
+    // Render parks
+    PARKS.forEach(p => {
+      const state = parkStates[p.num];
+      const el = document.createElement('div');
+      el.className = 'park';
+      el.id = 'park-' + p.num;
+
+      el.style.cssText = `
+        left:${p.x}px;
+        top:${p.y}px;
+        width:${p.w}px;
+        height:${p.h}px;
+      `;
+
+      if (p.angle !== 0) {
+        el.style.transform = `rotate(${p.angle}deg)`;
+        el.classList.add('angled');
+      }
+
+      if (p.isZone) {
+        el.classList.add('unavailable', 'zone-block');
+        el.style.fontSize = '0.55rem';
+        el.style.color = '#444';
+        el.style.lineHeight = '1.4';
+        el.style.textAlign = 'center';
+        el.innerHTML = p.name.replace('\n', '<br>');
+        map.appendChild(el);
+        return;
+      }
+
+      el.classList.add(state.status);
+
+      if (!p.yellow) {
+        el.classList.add('team-' + p.team, 'unavailable');
+      }
+
+      if (currentUser.role === 'owner' && p.num === currentUser.parkNum) {
+        el.classList.add('my-park');
+      }
+
+      el.innerHTML = `
+        <div class="pnum">${p.num}</div>
+        <div class="pname">${p.name}</div>
+      `;
+
+      if (p.yellow && state.status === 'available') {
+        if (currentUser.role !== 'owner' ||
+           (currentUser.role === 'owner' && p.num !== currentUser.parkNum)) {
+          el.onclick = () => openRequestModal(p.num);
+        }
+      }
+
+      map.appendChild(el);
+    });
+  }
+
+  // Expose to global scope
+  window.PARKS      = PARKS;
+  window.STAFF      = STAFF;
+  window.parkStates = parkStates;
+  window.currentUser      = currentUser;
+  window.selectedStaffRole  = selectedStaffRole;
+  window.selectedParkNum    = selectedParkNum;
+  window.pendingRequestPark = pendingRequestPark;
+  window.buildMap   = buildMap;
+
+</script>
+
+<script>
+  // ══════════════════════════════
+  // SCREEN NAVIGATION
+  // ══════════════════════════════
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ══════════════════════════════
+  // SCREEN 1a – Who are you?
+  // ══════════════════════════════
+
+  function onStaffSelected() {
+    const val = document.getElementById('staffSelect').value;
+    if (val) {
+      window.currentUser.name = val;
+      document.getElementById('staffGreeting').textContent =
+        'Hi, ' + val.split(' ')[0] + '! 👋';
+      window.selectedStaffRole = null;
+      document.getElementById('choiceOwner').classList.remove('selected');
+      document.getElementById('choiceDriver').classList.remove('selected');
+      document.getElementById('staffRoleBtn').disabled = true;
+      showScreen('screen-staff-role');
+    }
+  }
+
+  function goVisitor() {
+    document.getElementById('guestOfSelect').value = '';
+    document.getElementById('guestContinueBtn').disabled = true;
+    showScreen('screen-visitor');
+  }
+
+  // ══════════════════════════════
+  // SCREEN 1b – Staff role
+  // ══════════════════════════════
+
+  function selectStaffRole(role) {
+    window.selectedStaffRole = role;
+    document.getElementById('choiceOwner').classList.toggle('selected', role === 'owner');
+    document.getElementById('choiceDriver').classList.toggle('selected', role === 'driver');
+    document.getElementById('staffRoleBtn').disabled = false;
+  }
+
+  function confirmStaffRole() {
+    if (!window.selectedStaffRole) return;
+    window.currentUser.role = window.selectedStaffRole;
+
+    if (window.selectedStaffRole === 'owner') {
+      const staffMember = window.STAFF.find(s => s.name === window.currentUser.name);
+      window.selectedParkNum = staffMember ? staffMember.park : null;
+      buildParkNumGrid();
+      showScreen('screen-park-setup');
+    } else {
+      completeSetup();
+    }
+  }
+
+  // ══════════════════════════════
+  // SCREEN 1c – Park owner setup
+  // ══════════════════════════════
+
+  function buildParkNumGrid() {
+    const grid = document.getElementById('parkNumGrid');
+    grid.innerHTML = '';
+
+    const takenParks = window.STAFF
+      .filter(s => s.name !== window.currentUser.name && s.park)
+      .map(s => s.park);
+
+    const yellowParks = window.PARKS.filter(p => p.yellow && !p.isZone);
+
+    yellowParks.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'park-num-btn';
+      btn.textContent = p.num;
+
+      if (takenParks.includes(p.num)) {
+        btn.classList.add('taken');
+        btn.disabled = true;
+        btn.title = 'Assigned to someone else';
+      } else {
+        if (window.selectedParkNum === p.num) {
+          btn.classList.add('selected');
+        }
+        btn.onclick = () => selectParkNum(p.num, btn);
+      }
+      grid.appendChild(btn);
+    });
+
+    document.getElementById('parkSetupBtn').disabled = !window.selectedParkNum;
+  }
+
+  function selectParkNum(num, btn) {
+    window.selectedParkNum = num;
+    document.querySelectorAll('.park-num-btn')
+      .forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('parkSetupBtn').disabled = false;
+  }
+
+  function confirmParkSetup() {
+    if (!window.selectedParkNum) return;
+    window.currentUser.parkNum = window.selectedParkNum;
+    const staffMember = window.STAFF.find(s => s.name === window.currentUser.name);
+    if (staffMember) staffMember.park = window.selectedParkNum;
+    completeSetup();
+  }
+
+  // ══════════════════════════════
+  // SCREEN 1d – Visitor
+  // ══════════════════════════════
+
+  function onGuestSelected() {
+    const val = document.getElementById('guestOfSelect').value;
+    document.getElementById('guestContinueBtn').disabled = !val;
+    if (val) {
+      window.currentUser.guestOf = val;
+      window.currentUser.name = 'Guest of ' + val;
+    }
+  }
+
+  function confirmVisitor() {
+    if (!window.currentUser.guestOf) return;
+    window.currentUser.role = 'visitor';
+    completeSetup();
+  }
+
+  // ══════════════════════════════
+  // COMPLETE SETUP → GRID
+  // ══════════════════════════════
+
+  function completeSetup() {
+    const firstName = window.currentUser.name.split(' ')[0];
+    document.getElementById('userBadge').textContent = '👤 ' + firstName;
+
+    const ownerPanel = document.getElementById('ownerPanel');
+    if (window.currentUser.role === 'owner' && window.currentUser.parkNum) {
+      ownerPanel.style.display = 'block';
+      document.getElementById('ownerParkNum').textContent = window.currentUser.parkNum;
+      const state = window.parkStates[window.currentUser.parkNum];
+      updateAvailBtns(state.status === 'available');
+    } else {
+      ownerPanel.style.display = 'none';
+    }
+
+    window.buildMap();
+    showScreen('screen-grid');
+    showToast('Welcome, ' + firstName + '! ⚡');
+  }
+
+  // ══════════════════════════════
+  // AVAILABILITY (OWNER)
+  // ══════════════════════════════
+
+  function setAvailability(isAvailable) {
+    if (!window.currentUser.parkNum) return;
+    const newStatus = isAvailable ? 'available' : 'occupied';
+
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + window.currentUser.parkNum),
+      { status: newStatus, claimedBy: null, requestedBy: null }
+    );
+
+    updateAvailBtns(isAvailable);
+    showToast(isAvailable ? '✅ Park marked as available' : '❌ Park marked as occupied');
+  }
+
+  function updateAvailBtns(isAvailable) {
+    document.getElementById('availBtnYes').classList.toggle('yes', isAvailable);
+    document.getElementById('availBtnNo').classList.toggle('no', !isAvailable);
+  }
+
+  // ══════════════════════════════
+  // REQUEST MODAL
+  // ══════════════════════════════
+
+  function openRequestModal(parkNum) {
+    if (window.currentUser.claimedPark) {
+      showToast('You already have Park #' + window.currentUser.claimedPark);
+      return;
+    }
+
+    window.pendingRequestPark = parkNum;
+    const park = window.PARKS.find(p => p.num === parkNum);
+    const ownerName = park ? park.name : 'Unknown';
+
+    document.getElementById('requestModalText').textContent =
+      'Request Park #' + parkNum + ' from ' + ownerName + '?';
+
+    document.getElementById('requestModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('requestModal').classList.remove('active');
+    document.getElementById('approvalModal').classList.remove('active');
+  }
+
+  function confirmRequest() {
+    if (!window.pendingRequestPark) return;
+    const park = window.PARKS.find(p => p.num === window.pendingRequestPark);
+    if (!park) return;
+
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + window.pendingRequestPark),
+      {
+        status:      'pending',
+        requestedBy: window.currentUser.name,
+        claimedBy:   null,
+      }
+    );
+
+    closeModal();
+    showStatusBanner('waiting',
+      '⏳ Waiting for ' + park.name +
+      ' to approve Park #' + park.num + '...'
+    );
+  }
+
+  // ══════════════════════════════
+  // OWNER APPROVAL
+  // ══════════════════════════════
+
+  function triggerOwnerApproval(parkNum) {
+    const state = window.parkStates[parkNum];
+    if (!state) return;
+
+    document.getElementById('approvalModalText').textContent =
+      state.requestedBy + ' is requesting your Park #' +
+      parkNum + '. Is it available?';
+
+    document.getElementById('approvalModal').classList.add('active');
+  }
+
+  function respondToRequest(approved) {
+    const parkNum = window.pendingRequestPark;
+    const state   = window.parkStates[parkNum];
+    closeModal();
+    if (!state) return;
+
+    if (approved) {
+      firebase_update(
+        firebase_ref(window.db, 'parks/' + parkNum),
+        {
+          status:      'occupied',
+          claimedBy:   state.requestedBy,
+          requestedBy: null,
+        }
+      );
+    } else {
+      firebase_update(
+        firebase_ref(window.db, 'parks/' + parkNum),
+        {
+          status:      'available',
+          claimedBy:   null,
+          requestedBy: state.requestedBy + '_rejected',
+        }
+      );
+    }
+
+    window.pendingRequestPark = null;
+  }
+
+  // ══════════════════════════════
+  // RELEASE PARK
+  // ══════════════════════════════
+
+  function releasePark() {
+    if (!window.currentUser.claimedPark) return;
+
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + window.currentUser.claimedPark),
+      { status: 'available', claimedBy: null, requestedBy: null }
+    );
+
+    window.currentUser.claimedPark = null;
+    document.getElementById('releaseBtn').style.display = 'none';
+
+    const banner = document.getElementById('statusBanner');
+    banner.className = 'status-banner';
+    banner.textContent = '';
+
+    showToast('🚗 Park released. Thanks!');
+  }
+
+  // ══════════════════════════════
+  // STATUS BANNER
+  // ══════════════════════════════
+
+  function showStatusBanner(type, message) {
+    const banner = document.getElementById('statusBanner');
+    banner.className = 'status-banner ' + type;
+    banner.textContent = message;
+  }
+
+  // ══════════════════════════════
+  // RESET USER
+  // ══════════════════════════════
+
+  function resetUser() {
+    window.currentUser = {
+      name: null, role: null,
+      parkNum: null, guestOf: null,
+      claimedPark: null
+    };
+    window.selectedStaffRole  = null;
+    window.selectedParkNum    = null;
+    window.pendingRequestPark = null;
+
+    document.getElementById('staffSelect').value = '';
+    document.getElementById('userBadge').textContent = 'Set up →';
+
+    const banner = document.getElementById('statusBanner');
+    banner.className = 'status-banner';
+    banner.textContent = '';
+
+    document.getElementById('releaseBtn').style.display = 'none';
+    document.getElementById('ownerPanel').style.display = 'none';
+
+    showScreen('screen-who');
+  }
+
+  // ══════════════════════════════
+  // FIREBASE HELPERS
+  // ══════════════════════════════
+
+  function firebase_update(refPath, data) {
+    if (window._fbUpdate) window._fbUpdate(refPath, data);
+  }
+
+  function firebase_ref(db, path) {
+    if (window._fbRef) return window._fbRef(db, path);
+  }
+
+  // ══════════════════════════════
+  // TOAST
+  // ══════════════════════════════
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // ══════════════════════════════
+  // MIDNIGHT AUTO RESET
+  // ══════════════════════════════
+
+  function scheduleAutoReset() {
+    const now      = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    const msUntilMidnight = midnight - now;
+
+    setTimeout(() => {
+      window.PARKS.forEach(p => {
+        if (p.yellow && !p.isZone) {
+          firebase_update(
+            firebase_ref(window.db, 'parks/' + p.num),
+            { status: 'available', claimedBy: null, requestedBy: null }
+          );
+        }
+      });
+      if (document.getElementById('screen-grid').classList.contains('active')) {
+        showToast('🌙 Parks reset for the new day');
+      }
+      scheduleAutoReset();
+    }, msUntilMidnight);
+  }
+
+  scheduleAutoReset();
+
+</script>
+
+<!-- ══════════════════════════════
+     FIREBASE BRIDGE
+══════════════════════════════ -->
+<script type="module">
+  import { getDatabase, ref, update }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getApp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+  const db = getDatabase(getApp());
+
+  window._fbUpdate = (refPath, data) => update(refPath, data);
+  window._fbRef    = (db, path)      => ref(db, path);
+  window.db        = db;
+</script>
+
+</body>
+</html>
