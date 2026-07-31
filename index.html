@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sparks ⚡</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a1a1a;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #2a2a2a;
+    }
+    header h1 { font-size: 1.5rem; letter-spacing: 1px; }
+    header span { font-size: 1.5rem; }
+    .user-badge {
+      margin-left: auto;
+      background: #2a2a2a;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    /* ── Screens ── */
+    .screen { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
+    .screen.active { display: block; }
+
+    /* ── Onboarding ── */
+    .onboard-card {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 28px;
+      margin-top: 20px;
+    }
+    .onboard-card h2 { margin-bottom: 8px; font-size: 1.3rem; }
+    .onboard-card p  { color: #888; font-size: 0.9rem; margin-bottom: 24px; }
+
+    label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #aaa; }
+
+    select, input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #2a2a2a;
+      color: #f0f0f0;
+      font-size: 1rem;
+      margin-bottom: 18px;
+    }
+
+    .role-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .role-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #2a2a2a;
+      color: #aaa;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .role-btn.selected {
+      border-color: #4CAF50;
+      color: #4CAF50;
+      background: #1a2e1a;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #43a047; }
+    .btn-primary:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+    /* ── Grid Screen ── */
+    .grid-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .grid-header h2 { font-size: 1.1rem; }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      font-size: 0.78rem;
+      color: #aaa;
+    }
+    .legend span { display: flex; align-items: center; gap: 4px; }
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot.green  { background: #4CAF50; }
+    .dot.red    { background: #f44336; }
+    .dot.amber  { background: #FF9800; }
+    .dot.grey   { background: #555; }
+
+    .carpark-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .park-tile {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.2s;
+      border: 2px solid transparent;
+      position: relative;
+    }
+    .park-tile:active { transform: scale(0.94); }
+    .park-tile .park-num  { font-size: 1.2rem; font-weight: 700; }
+    .park-tile .park-name { font-size: 0.55rem; color: rgba(255,255,255,0.7); margin-top: 2px; text-align: center; padding: 0 2px; }
+
+    .park-tile.available  { background: #1a2e1a; border-color: #4CAF50; }
+    .park-tile.occupied   { background: #2e1a1a; border-color: #f44336; opacity: 0.7; cursor: default; }
+    .park-tile.pending    { background: #2e2010; border-color: #FF9800; }
+    .park-tile.unassigned { background: #1e1e1e; border-color: #555; }
+
+    /* ── My Park Panel ── */
+    .my-park-panel {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .my-park-panel h3 { font-size: 1rem; margin-bottom: 14px; color: #aaa; }
+
+    .availability-toggle {
+      display: flex;
+      gap: 10px;
+    }
+    .avail-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #2a2a2a;
+      color: #aaa;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .avail-btn.active-yes {
+      border-color: #4CAF50;
+      background: #1a2e1a;
+      color: #4CAF50;
+    }
+    .avail-btn.active-no {
+      border-color: #f44336;
+      background: #2e1a1a;
+      color: #f44336;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 380px;
+    }
+    .modal h3 { margin-bottom: 10px; }
+    .modal p  { color: #aaa; font-size: 0.9rem; margin-bottom: 24px; }
+    .modal-btns { display: flex; gap: 10px; }
+    .btn-yes {
+      flex: 1; padding: 13px;
+      background: #4CAF50; color: white;
+      border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-no {
+      flex: 1; padding: 13px;
+      background: #f44336; color: white;
+      border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #333;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      transition: transform 0.3s;
+      z-index: 200;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Status Banner ── */
+    .status-banner {
+      display: none;
+      padding: 14px 18px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .status-banner.waiting {
+      display: block;
+      background: #2e2010;
+      border: 1px solid #FF9800;
+      color: #FF9800;
+    }
+    .status-banner.approved {
+      display: block;
+      background: #1a2e1a;
+      border: 1px solid #4CAF50;
+      color: #4CAF50;
+    }
+    .status-banner.rejected {
+      display: block;
+      background: #2e1a1a;
+      border: 1px solid #f44336;
+      color: #f44336;
+    }
+
+    .release-btn {
+      width: 100%;
+      padding: 14px;
+      background: #f44336;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <span>⚡</span>
+  <h1>Sparks</h1>
+  <div class="user-badge" onclick="resetUser()" id="userBadge">Set up →</div>
+</header>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════
+     SCREEN 1 – Onboarding
+════════════════════════════════ -->
+<div class="screen active" id="screen-onboard">
+  <div class="onboard-card">
+    <h2>Welcome to Sparks ⚡</h2>
+    <p>Sony carpark sharing — quick, simple, live.</p>
+
+    <label>Who are you?</label>
+    <select id="nameSelect" onchange="onNameChange()">
+      <option value="">— Select your name —</option>
+      <optgroup label="Staff">
+        <!-- Placeholder names - replace with real staff list -->
+        <option value="staff_1">Alex Johnson</option>
+        <option value="staff_2">Jordan Lee</option>
+        <option value="staff_3">Morgan Smith</option>
+        <option value="staff_4">Casey Williams</option>
+        <option value="staff_5">Riley Brown</option>
+        <option value="staff_6">Taylor Davis</option>
+        <option value="staff_7">Sam Wilson</option>
+        <option value="staff_8">Drew Martinez</option>
+        <option value="staff_9">Quinn Anderson</option>
+        <option value="staff_10">Jamie Thomas</option>
+      </optgroup>
+      <optgroup label="Guest">
+        <option value="guest_1">Guest of Alex Johnson</option>
+        <option value="guest_2">Guest of Jordan Lee</option>
+        <option value="guest_3">Guest of Morgan Smith</option>
+        <option value="guest_4">Guest of Casey Williams</option>
+        <option value="guest_5">Guest of Riley Brown</option>
+        <option value="guest_6">Guest of Taylor Davis</option>
+        <option value="guest_7">Guest of Sam Wilson</option>
+        <option value="guest_8">Guest of Drew Martinez</option>
+        <option value="guest_9">Guest of Quinn Anderson</option>
+        <option value="guest_10">Guest of Jamie Thomas</option>
+      </optgroup>
+    </select>
+
+    <!-- Role selection - only shown for staff -->
+    <div id="roleSection" style="display:none">
+      <label>Your role today</label>
+      <div class="role-toggle">
+        <button class="role-btn" id="roleOwner" onclick="selectRole('owner')">
+          🅿️ I have a park
+        </button>
+        <button class="role-btn" id="roleDriver" onclick="selectRole('driver')">
+          🚗 Looking for a park
+        </button>
+      </div>
+
+      <!-- Park number - only for owners -->
+      <div id="parkSelectSection" style="display:none">
+        <label>Your allocated park number</label>
+        <select id="parkSelect">
+          <option value="">— Select park number —</option>
+          <!-- Generated by JS -->
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="beginBtn" onclick="completeOnboarding()" disabled>
+      Let's go ⚡
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     SCREEN 2 – Carpark Grid
+════════════════════════════════ -->
+<div class="screen" id="screen-grid">
+
+  <!-- Status banner for drivers waiting -->
+  <div class="status-banner" id="statusBanner"></div>
+
+  <!-- Release button -->
+  <button class="release-btn" id="releaseBtn" onclick="releasePark()">
+    🚗 Release My Park
+  </button>
+
+  <!-- Owner's park controls -->
+  <div class="my-park-panel" id="myParkPanel" style="display:none">
+    <h3>⚡ Your Park: <span id="myParkNum">—</span></h3>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:12px;">
+      Is your park available today?
+    </p>
+    <div class="availability-toggle">
+      <button class="avail-btn" id="availYes" onclick="setMyAvailability(true)">
+        ✅ Available
+      </button>
+      <button class="avail-btn" id="availNo" onclick="setMyAvailability(false)">
+        ❌ I'm using it
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid-header">
+    <h2>Carparks</h2>
+    <span style="font-size:0.8rem; color:#666;">Tap green to request</span>
+  </div>
+
+  <div class="legend">
+    <span><i class
