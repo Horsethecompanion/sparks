@@ -583,6 +583,22 @@
   // ══════════════════════════════
   // FIREBASE CONFIG
   // ══════════════════════════════
+  // 🔒 SECURITY: Set these rules in Firebase Console → Realtime Database → Rules
+  // This allows public read/write with client-side rate limiting for spam protection.
+  // {
+  //   "rules": {
+  //     "parks": {
+  //       ".read": true,
+  //       ".write": true
+  //     }
+  //   }
+  // }
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Rate limiting is enforced client-side (2s cooldown between writes).
+  // If you want stricter security (e.g., auth-only), update these rules and adjust
+  // the app to include Firebase Authentication.
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const firebaseConfig = {
     apiKey:            "AIzaSyC9yQEhnXNXxS2eQD7wEtM4sC0L5lfPyt8",
     authDomain:        "sparks-carpark.firebaseapp.com",
@@ -612,16 +628,16 @@
     { num: 10, name: 'Meri',          team: 'grey',   yellow: false, x: 10,  y: 206, w: 60, h: 44, angle: 0 },
     { num: 11, name: 'SME',           team: 'grey',   yellow: false, x: 10,  y: 160, w: 60, h: 44, angle: 0 },
     { num: 12, name: 'FVLB',          team: 'grey',   yellow: false, x: 10,  y: 114, w: 60, h: 44, angle: 0 },
-    { num: 13, name: 'Gareth',        team: 'green',  yellow: false, x: 10,  y: 10,  w: 60, h: 44, angle: 0 },
-    { num: 14, name: 'Tony',          team: 'grey',   yellow: false, x: 76,  y: 10,  w: 60, h: 44, angle: 0 },
-    { num: 15, name: 'Dani',          team: 'green',  yellow: false, x: 142, y: 10,  w: 60, h: 44, angle: 0 },
-    { num: 16, name: 'Hype\nStorage', team: 'grey',   yellow: false, x: 208, y: 10,  w: 80, h: 60, angle: 0, isZone: true },
-    { num: 17, name: 'Kristie',       team: 'blue',   yellow: false, x: 295, y: 14,  w: 58, h: 40, angle: -30 },
-    { num: 18, name: 'Luke',          team: 'yellow', yellow: true,  x: 338, y: 34,  w: 58, h: 40, angle: -30 },
-    { num: 19, name: 'Richard',       team: 'yellow', yellow: true,  x: 381, y: 54,  w: 58, h: 40, angle: -30 },
-    { num: 20, name: 'Teri',          team: 'yellow', yellow: true,  x: 424, y: 74,  w: 58, h: 40, angle: -30 },
-    { num: 21, name: 'Tim',           team: 'yellow', yellow: true,  x: 424, y: 120, w: 58, h: 40, angle: -30 },
-    { num: 22, name: 'Kevin',         team: 'yellow', yellow: true,  x: 424, y: 166, w: 58, h: 40, angle: -30 },
+    { num: 13, name: 'Gareth',        team: 'green',  yellow: false, x: 75,  y: 10,  w: 30, h: 44, angle: 0 },
+    { num: 14, name: 'Tony',          team: 'grey',   yellow: false, x: 105, y: 10,  w: 30, h: 44, angle: 0 },
+    { num: 15, name: 'Dani',          team: 'green',  yellow: false, x: 135, y: 10,  w: 30, h: 44, angle: 0 },
+    { num: 16, name: 'Hype\nStorage', team: 'grey',   yellow: false, x: 165, y: 10,  w: 70, h: 60, angle: 0, isZone: true },
+    { num: 17, name: 'Kristie',       team: 'blue',   yellow: false, x: 245, y: 10,  w: 30, h: 44, angle: 15 },
+    { num: 18, name: 'Luke',          team: 'yellow', yellow: true,  x: 280, y: 10,  w: 30, h: 44, angle: 15 },
+    { num: 19, name: 'Richard',       team: 'yellow', yellow: true,  x: 315, y: 10,  w: 30, h: 44, angle: 15 },
+    { num: 20, name: 'Teri',          team: 'yellow', yellow: true,  x: 350, y: 10,  w: 30, h: 44, angle: 15 },
+    { num: 21, name: 'Tim',           team: 'yellow', yellow: true,  x: 385, y: 10,  w: 30, h: 44, angle: 15 },
+    { num: 22, name: 'Kevin',         team: 'yellow', yellow: true,  x: 420, y: 10,  w: 30, h: 44, angle: 15 },
     { num: 23, name: 'Dan',           team: 'yellow', yellow: true,  x: 490, y: 10,  w: 60, h: 44, angle: 0 },
     { num: 24, name: 'Rob',           team: 'yellow', yellow: true,  x: 490, y: 60,  w: 60, h: 44, angle: 0 },
     { num: 25, name: 'Andrew',        team: 'yellow', yellow: true,  x: 490, y: 110, w: 60, h: 44, angle: 0 },
@@ -633,21 +649,21 @@
     { num: 31, name: 'Emily',         team: 'yellow', yellow: true,  x: 490, y: 410, w: 60, h: 44, angle: 0 },
     { num: 32, name: 'SEL',           team: 'grey',   yellow: false, x: 490, y: 460, w: 60, h: 44, angle: 0 },
     { num: 33, name: 'FVLB',          team: 'grey',   yellow: false, x: 490, y: 510, w: 60, h: 44, angle: 0 },
-    { num: 34, name: 'Benefit',       team: 'grey',   yellow: false, x: 490, y: 560, w: 60, h: 100, angle: 0, isZone: true },
-    { num: 35, name: 'Jo',            team: 'yellow', yellow: true,  x: 360, y: 390, w: 58, h: 40, angle: 0 },
-    { num: 36, name: 'SEL',           team: 'grey',   yellow: false, x: 360, y: 436, w: 58, h: 40, angle: 0 },
-    { num: 37, name: 'Sam',           team: 'yellow', yellow: true,  x: 360, y: 482, w: 58, h: 40, angle: 0 },
-    { num: 38, name: 'Mark F',        team: 'yellow', yellow: true,  x: 360, y: 528, w: 58, h: 40, angle: 0 },
-    { num: 39, name: 'BBnT',          team: 'grey',   yellow: false, x: 360, y: 220, w: 58, h: 40, angle: 0, isZone: true },
-    { num: 40, name: 'Liv',           team: 'grey',   yellow: false, x: 360, y: 266, w: 58, h: 40, angle: 0 },
-    { num: 41, name: 'SME',           team: 'grey',   yellow: false, x: 360, y: 312, w: 58, h: 40, angle: 0 },
-    { num: 42, name: 'Carl',          team: 'blue',   yellow: false, x: 296, y: 220, w: 58, h: 40, angle: 0 },
-    { num: 43, name: 'Benefit',       team: 'grey',   yellow: false, x: 296, y: 266, w: 58, h: 40, angle: 0, isZone: true },
-    { num: 44, name: 'Kim',           team: 'green',  yellow: false, x: 296, y: 312, w: 58, h: 40, angle: 0 },
-    { num: 45, name: 'Jeffrey',       team: 'yellow', yellow: true,  x: 296, y: 390, w: 58, h: 40, angle: 0 },
-    { num: 46, name: 'Justin',        team: 'blue',   yellow: false, x: 296, y: 436, w: 58, h: 40, angle: 0 },
-    { num: 47, name: 'Chris',         team: 'yellow', yellow: true,  x: 296, y: 482, w: 58, h: 40, angle: 0 },
-    { num: 48, name: 'Jenny',         team: 'yellow', yellow: true,  x: 296, y: 528, w: 58, h: 40, angle: 0 },
+    { num: 34, name: 'Benefit',       team: 'grey',   yellow: false, x: 490, y: 560, w: 60, h: 44, angle: 0, isZone: true },
+    { num: 35, name: 'Jo',            team: 'yellow', yellow: true,  x: 300, y: 390, w: 58, h: 40, angle: 0 },
+    { num: 36, name: 'SEL',           team: 'grey',   yellow: false, x: 300, y: 436, w: 58, h: 40, angle: 0 },
+    { num: 37, name: 'Sam',           team: 'yellow', yellow: true,  x: 300, y: 482, w: 58, h: 40, angle: 0 },
+    { num: 38, name: 'Mark F',        team: 'yellow', yellow: true,  x: 300, y: 528, w: 58, h: 40, angle: 0 },
+    { num: 39, name: 'BBnT',          team: 'grey',   yellow: false, x: 300, y: 220, w: 58, h: 40, angle: 0, isZone: true },
+    { num: 40, name: 'Liv',           team: 'grey',   yellow: false, x: 300, y: 266, w: 58, h: 40, angle: 0 },
+    { num: 41, name: 'SME',           team: 'grey',   yellow: false, x: 300, y: 312, w: 58, h: 40, angle: 0 },
+    { num: 42, name: 'Carl',          team: 'blue',   yellow: false, x: 200, y: 215, w: 58, h: 40, angle: 0 },
+    { num: 43, name: 'Benefit',       team: 'grey',   yellow: false, x: 200, y: 266, w: 58, h: 40, angle: 0, isZone: true },
+    { num: 44, name: 'Kim',           team: 'green',  yellow: false, x: 200, y: 312, w: 58, h: 40, angle: 0 },
+    { num: 45, name: 'Jeffrey',       team: 'yellow', yellow: true,  x: 200, y: 390, w: 58, h: 40, angle: 0 },
+    { num: 46, name: 'Justin',        team: 'blue',   yellow: false, x: 200, y: 436, w: 58, h: 40, angle: 0 },
+    { num: 47, name: 'Chris',         team: 'yellow', yellow: true,  x: 200, y: 482, w: 58, h: 40, angle: 0 },
+    { num: 48, name: 'Jenny',         team: 'yellow', yellow: true,  x: 200, y: 528, w: 58, h: 40, angle: 0 },
   ];
 
   const STAFF = [
@@ -1172,10 +1188,23 @@
   }
 
   // ══════════════════════════════
+  // WRITE RATE LIMITING
+  // ══════════════════════════════
+  // Prevents spam/abuse: max 1 write per 2 seconds per client
+  let lastWriteTime = 0;
+  const WRITE_COOLDOWN = 2000; // milliseconds
+
+  // ══════════════════════════════
   // FIREBASE HELPERS
   // ══════════════════════════════
 
   function firebase_update(refPath, data) {
+    const now = Date.now();
+    if (now - lastWriteTime < WRITE_COOLDOWN) {
+      showToast('⏱️ Hold on — actions must be spaced out');
+      return;
+    }
+    lastWriteTime = now;
     if (window._fbUpdate) window._fbUpdate(refPath, data);
   }
 
