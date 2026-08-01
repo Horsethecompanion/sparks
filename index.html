@@ -665,6 +665,16 @@
     { name: 'Jenny',        park: 48 },
   ];
 
+  // Local park states (synced from Firebase)
+  let parkStates = {};
+  PARKS.forEach(p => {
+    parkStates[p.num] = {
+      status:    p.yellow && !p.isZone ? 'available' : 'unavailable',
+      claimedBy: null,
+      requestedBy: null,
+    };
+  });
+
   // Track pending requests (stored in state, synced with Firebase)
   let pendingRequests = {};  // { parkNum: { status: 'pending'|'approved'|'rejected', guestName: '...' } }
 
@@ -723,16 +733,9 @@
       container.appendChild(item);
     });
   }
-  PARKS.forEach(p => {
-    parkStates[p.num] = {
-      status:    p.yellow && !p.isZone ? 'available' : 'unavailable',
-      claimedBy: null,
-      requestedBy: null,
-    };
-  });
 
   // Current user session
-  let currentUser = {
+  window.currentUser = {
     name:        null,
     role:        null,
     parkNum:     null,
@@ -740,9 +743,9 @@
     claimedPark: null,
   };
 
-  let selectedStaffRole  = null;
-  let selectedParkNum    = null;
-  let pendingRequestPark = null;
+  window.selectedStaffRole  = null;
+  window.selectedParkNum    = null;
+  window.pendingRequestPark = null;
 
   // ══════════════════════════════
   // FIREBASE LISTENERS
@@ -768,12 +771,12 @@
     }
 
     // Check if driver's request was responded to
-    if (currentUser.claimedPark === null) {
-      PARKS.forEach(p => {
-        const state = parkStates[p.num];
-        if (state.requestedBy === currentUser.name) {
+    if (window.currentUser.claimedPark === null) {
+      window.PARKS.forEach(p => {
+        const state = window.parkStates[p.num];
+        if (state.requestedBy === window.currentUser.name) {
           if (state.status === 'occupied') {
-            currentUser.claimedPark = p.num;
+            window.currentUser.claimedPark = p.num;
             document.getElementById('releaseBtn').style.display = 'block';
             showStatusBanner('approved',
               '✅ Approved! Park #' + p.num + ' is yours. Tap Release when you leave.'
@@ -786,7 +789,7 @@
           }
         }
         // Check for declined requests
-        if (state.requestedBy && state.requestedBy.includes(currentUser.name + '_rejected')) {
+        if (state.requestedBy && state.requestedBy.includes(window.currentUser.name + '_rejected')) {
           showStatusBanner('rejected',
             '❌ Request declined for Park #' + p.num + '. Please try another.'
           );
@@ -799,12 +802,12 @@
     }
 
     // Check if owner has an incoming request
-    if (currentUser.role === 'owner' && currentUser.parkNum) {
-      const state = parkStates[currentUser.parkNum];
+    if (window.currentUser.role === 'owner' && window.currentUser.parkNum) {
+      const state = window.parkStates[window.currentUser.parkNum];
       if (state.status === 'pending' && state.requestedBy &&
-          pendingRequestPark !== currentUser.parkNum) {
-        pendingRequestPark = currentUser.parkNum;
-        triggerOwnerApproval(currentUser.parkNum);
+          window.pendingRequestPark !== window.currentUser.parkNum) {
+        window.pendingRequestPark = window.currentUser.parkNum;
+        triggerOwnerApproval(window.currentUser.parkNum);
       }
     }
   });
