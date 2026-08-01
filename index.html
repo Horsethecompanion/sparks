@@ -657,6 +657,7 @@
     { name: 'Aaron',        park: 27 },
     { name: 'SEL',          park: 28 },
     { name: 'Rafael',       park: 29 },
+    { name: 'Emily',        park: 31 },
     { name: 'Jo',           park: 35 },
     { name: 'Sam',          park: 37 },
     { name: 'Mark F',       park: 38 },
@@ -679,6 +680,13 @@
   let pendingRequests = {};  // { parkNum: { status: 'pending'|'approved'|'rejected', guestName: '...' } }
 
   function updatePendingRequests() {
+    // Only update if user is set up
+    if (!window.currentUser || !window.currentUser.name) {
+      window.pendingRequests = {};
+      updatePendingRequestsUI();
+      return;
+    }
+
     const tracked = {};
     Object.keys(window.parkStates).forEach(parkNum => {
       const num = parseInt(parkNum);
