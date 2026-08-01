@@ -717,13 +717,22 @@
             showStatusBanner('approved',
               '✅ Approved! Park #' + p.num + ' is yours. Tap Release when you leave.'
             );
-          } else if (state.status === 'available' && state.requestedBy === currentUser.name) {
-            showStatusBanner('rejected',
-              '❌ Sorry, Park #' + p.num +
-              ' is not available. Please try another.'
+          } else if (state.status === 'pending') {
+            // Still waiting for owner response
+            showStatusBanner('waiting',
+              '⏳ Request sent for Park #' + p.num + '. Waiting for response...'
             );
-            update(ref(db, 'parks/' + p.num), { requestedBy: null });
           }
+        }
+        // Check for declined requests
+        if (state.requestedBy && state.requestedBy.includes(currentUser.name + '_rejected')) {
+          showStatusBanner('rejected',
+            '❌ Request declined for Park #' + p.num + '. Please try another.'
+          );
+          firebase_update(
+            firebase_ref(window.db, 'parks/' + p.num),
+            { requestedBy: null }
+          );
         }
       });
     }
@@ -861,10 +870,19 @@
       try {
         const setup = JSON.parse(saved);
         window.currentUser = setup;
-        completeSetup();
-        return true;
+        
+        // Only complete setup if Firebase is ready
+        if (window.db) {
+          completeSetup();
+          return true;
+        } else {
+          // Firebase not ready yet, wait a bit and try again
+          setTimeout(checkExistingSetup, 500);
+          return false;
+        }
       } catch (e) {
-        console.log('Could not restore setup:', e);
+        console.error('Could not restore setup:', e);
+        localStorage.removeItem('sparksUserSetup'); // Clear corrupted data
       }
     }
     return false;
@@ -1291,6 +1309,7 @@
 
   window._fbUpdate = (refPath, data) => update(refPath, data);
   window._fbRef    = (db, path)      => ref(db, path);
+  window._fbUpdateDirect = update;  // Expose for direct calls in listeners
   window.db        = db;
 
   // ══════════════════════════════
