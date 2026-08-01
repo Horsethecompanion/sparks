@@ -492,9 +492,6 @@
 <div class="screen" id="screen-grid">
   <div class="status-banner" id="statusBanner"></div>
   <div id="pendingRequestsList" style="margin-bottom: 16px;"></div>
-  <button class="btn-release" id="releaseBtn" onclick="releasePark()" style="width: 100%;">
-    🚗 Release My Park
-  </button>
   <div class="owner-panel" id="ownerPanel" style="display:none">
     <h3>⚡ Your Park: <strong id="ownerParkNum">—</strong></h3>
     <p style="font-size:0.82rem; color:#666; margin-bottom:12px;">
@@ -726,20 +723,80 @@
       if (!park) return;
       
       const item = document.createElement('div');
-      item.style.cssText = 'padding: 8px; background: #1a1a1a; border-left: 3px solid'; 
+      item.style.cssText = 'padding: 10px 12px; margin-bottom: 8px; background: #1a1a1a; border-radius: 8px; border-left: 3px solid; display: flex; justify-content: space-between; align-items: center; gap: 10px;';
       
+      const info = document.createElement('div');
+      info.style.cssText = 'flex: 1; min-width: 0;';
+
+      const btn = document.createElement('button');
+      btn.style.cssText = 'padding: 7px 14px; border-radius: 6px; border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0;';
+
       if (req.status === 'pending') {
         item.style.borderLeftColor = '#FF9800';
         const guestText = req.guestName ? ` for ${req.guestName}` : '';
-        item.innerHTML = `<strong>⏳ Park #${num}</strong> ${guestText}<br><small>Waiting for approval</small>`;
+        info.innerHTML = `<strong>⏳ Park #${num}</strong>${guestText}<br><small style="color:#999;">Waiting for approval</small>`;
+        btn.textContent = 'Cancel';
+        btn.style.background = '#3a3a3a';
+        btn.style.color = '#fff';
+        btn.onclick = () => cancelRequest(num);
       } else if (req.status === 'claimed') {
         item.style.borderLeftColor = '#4CAF50';
         const guestText = req.guestName ? ` (${req.guestName})` : '';
-        item.innerHTML = `<strong>✅ Park #${num}</strong> ${guestText}<br><small>Yours until you release</small>`;
+        info.innerHTML = `<strong>✅ Park #${num}</strong>${guestText}<br><small style="color:#999;">Yours until you release</small>`;
+        btn.textContent = 'Release';
+        btn.style.background = '#F44336';
+        btn.style.color = '#fff';
+        btn.onclick = () => releaseSpecificPark(num);
+      } else {
+        return;
       }
       
+      item.appendChild(info);
+      item.appendChild(btn);
       container.appendChild(item);
     });
+  }
+
+  // ══════════════════════════════
+  // CANCEL A PENDING REQUEST
+  // ══════════════════════════════
+  function cancelRequest(parkNum) {
+    const state = window.parkStates[parkNum];
+    if (!state || state.requestedBy !== window.currentUser.name || state.status !== 'pending') {
+      showToast('This request can no longer be cancelled');
+      return;
+    }
+
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + parkNum),
+      { status: 'available', requestedBy: null, guestName: null }
+    );
+
+    showToast('Request for Park #' + parkNum + ' cancelled');
+  }
+
+  // ══════════════════════════════
+  // RELEASE A SPECIFIC CLAIMED PARK
+  // ══════════════════════════════
+  function releaseSpecificPark(parkNum) {
+    const state = window.parkStates[parkNum];
+    if (!state || state.claimedBy !== window.currentUser.name) {
+      showToast('You don\'t currently hold this park');
+      return;
+    }
+
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + parkNum),
+      {
+        status: 'available',
+        claimedBy: null,
+        claimedByGuest: null,
+        requestedBy: null,
+        guestName: null
+      }
+    );
+
+    showToast('🚗 Park #' + parkNum + ' released. Thanks!');
   }
 
   // Current user session
@@ -748,7 +805,6 @@
     role:        null,
     parkNum:     null,
     guestOf:     null,
-    claimedPark: null,
   };
 
   window.selectedStaffRole  = null;
@@ -759,6 +815,8 @@
   // FIREBASE LISTENERS
   // ══════════════════════════════
   const parksRef = ref(db, 'parks');
+  window._seenParkState = {}; // Tracks last banner shown per park to avoid repeat toasts
+
   onValue(parksRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -770,7 +828,7 @@
       });
     }
 
-    // Update pending requests tracking
+    // Update pending requests tracking (source of truth = Firebase, survives refresh)
     updatePendingRequests();
 
     // Rebuild map if on grid screen
@@ -778,40 +836,44 @@
       buildMap();
     }
 
-    // Check if driver's request was responded to
-    if (window.currentUser.claimedPark === null) {
-      window.PARKS.forEach(p => {
-        const state = window.parkStates[p.num];
-        if (state.requestedBy === window.currentUser.name) {
-          if (state.status === 'occupied') {
-            window.currentUser.claimedPark = p.num;
-            document.getElementById('releaseBtn').style.display = 'block';
-            showStatusBanner('approved',
-              '✅ Approved! Park #' + p.num + ' is yours. Tap Release when you leave.'
-            );
-          } else if (state.status === 'pending') {
-            // Still waiting for owner response
-            showStatusBanner('waiting',
-              '⏳ Request sent for Park #' + p.num + '. Waiting for response...'
-            );
-          }
+    // Check each park for status changes relevant to the current user (as requester)
+    window.PARKS.forEach(p => {
+      const state = window.parkStates[p.num];
+
+      if (state.requestedBy === window.currentUser.name && state.status === 'occupied') {
+        if (window._seenParkState[p.num] !== 'approved') {
+          window._seenParkState[p.num] = 'approved';
+          showStatusBanner('approved',
+            '✅ Approved! Park #' + p.num + ' is yours. Release it from the list below when you leave.'
+          );
         }
-        // Check for declined requests
-        if (state.requestedBy && state.requestedBy.includes(window.currentUser.name + '_rejected')) {
+      } else if (state.requestedBy === window.currentUser.name && state.status === 'pending') {
+        window._seenParkState[p.num] = 'pending';
+      } else if (state.requestedBy && state.requestedBy.includes(window.currentUser.name + '_rejected')) {
+        if (window._seenParkState[p.num] !== 'rejected') {
+          window._seenParkState[p.num] = 'rejected';
           showStatusBanner('rejected',
             '❌ Request declined for Park #' + p.num + '. Please try another.'
           );
-          firebase_update(
-            firebase_ref(window.db, 'parks/' + p.num),
-            { requestedBy: null }
-          );
         }
-      });
-    }
+        // Clear the rejection flag from Firebase so it doesn't linger for others
+        firebase_update(
+          firebase_ref(window.db, 'parks/' + p.num),
+          { requestedBy: null }
+        );
+      } else {
+        delete window._seenParkState[p.num];
+      }
+    });
 
-    // Check if owner has an incoming request
+    // Owner: keep availability toggle in sync + trigger approval modal for incoming requests
     if (window.currentUser.role === 'owner' && window.currentUser.parkNum) {
       const state = window.parkStates[window.currentUser.parkNum];
+
+      if (state.status === 'available' || state.status === 'unavailable') {
+        updateAvailBtns(state.status === 'available');
+      }
+
       if (state.status === 'pending' && state.requestedBy &&
           window.pendingRequestPark !== window.currentUser.parkNum) {
         window.pendingRequestPark = window.currentUser.parkNum;
@@ -1096,11 +1158,12 @@
 
   function completeSetup() {
     // Save setup to localStorage for persistence
+    // Note: claimed/pending parks are NOT saved here - they're derived live from
+    // Firebase on every load, so they always survive refresh accurately.
     localStorage.setItem('sparksUserSetup', JSON.stringify({
       name: window.currentUser.name,
       role: window.currentUser.role,
-      parkNum: window.currentUser.parkNum,
-      claimedPark: window.currentUser.claimedPark
+      parkNum: window.currentUser.parkNum
     }));
 
     const firstName = window.currentUser.name.split(' ')[0];
@@ -1148,11 +1211,6 @@
   // ══════════════════════════════
 
   function openRequestModal(parkNum) {
-    if (window.currentUser.claimedPark) {
-      showToast('You already have Park #' + window.currentUser.claimedPark);
-      return;
-    }
-
     window.pendingRequestPark = parkNum;
     const park = window.PARKS.find(p => p.num === parkNum);
     const ownerName = park ? park.name : 'Unknown';
@@ -1246,41 +1304,6 @@
   }
 
   // ══════════════════════════════
-  // RELEASE PARK
-  // ══════════════════════════════
-
-  function releasePark() {
-    if (!window.currentUser.claimedPark) {
-      showToast('No park to release');
-      return;
-    }
-
-    const parkNum = window.currentUser.claimedPark;
-    
-    // Clear local state immediately for UI responsiveness
-    window.currentUser.claimedPark = null;
-    document.getElementById('releaseBtn').style.display = 'none';
-
-    const banner = document.getElementById('statusBanner');
-    banner.className = 'status-banner';
-    banner.textContent = '';
-
-    // Update Firebase
-    firebase_update(
-      firebase_ref(window.db, 'parks/' + parkNum),
-      { 
-        status: 'available', 
-        claimedBy: null, 
-        claimedByGuest: null, 
-        requestedBy: null, 
-        guestName: null 
-      }
-    );
-
-    showToast('🚗 Park #' + parkNum + ' released. Thanks!');
-  }
-
-  // ══════════════════════════════
   // STATUS BANNER
   // ══════════════════════════════
 
@@ -1300,12 +1323,12 @@
     
     window.currentUser = {
       name: null, role: null,
-      parkNum: null,
-      claimedPark: null
+      parkNum: null
     };
     window.selectedStaffRole  = null;
     window.selectedParkNum    = null;
     window.pendingRequestPark = null;
+    window._seenParkState     = {};
 
     document.getElementById('staffSelect').value = '';
     document.getElementById('userBadge').textContent = 'Set up →';
@@ -1314,7 +1337,7 @@
     banner.className = 'status-banner';
     banner.textContent = '';
 
-    document.getElementById('releaseBtn').style.display = 'none';
+    document.getElementById('pendingRequestsList').innerHTML = '';
     document.getElementById('ownerPanel').style.display = 'none';
 
     showScreen('screen-who');
@@ -1414,9 +1437,24 @@
 
   window._registerForFCM = async () => {
     try {
-      const token = await getToken(messaging, {
+      // CRITICAL: explicitly bind FCM to our own sw.js registration.
+      // Without this, Firebase's SDK looks for a separate '/firebase-messaging-sw.js'
+      // file (which doesn't exist here), and background push silently fails -
+      // notifications then only work while the app tab is open in the foreground.
+      const registration = window._swRegistrationPromise
+        ? await window._swRegistrationPromise
+        : (('serviceWorker' in navigator) ? await navigator.serviceWorker.ready : null);
+
+      const tokenOptions = {
         vapidKey: 'BJ4KK7CtQ0YyQD9S6sEoealIgQVxG6bYzB3ozLACFh0e5buEsw8sRENLKTtBaP9Iz1qj0HCC5e384BrrEDa7bgE'
-      });
+      };
+      if (registration) {
+        tokenOptions.serviceWorkerRegistration = registration;
+      } else {
+        console.warn('No Service Worker registration available - background notifications will not work');
+      }
+
+      const token = await getToken(messaging, tokenOptions);
       
       if (token && window.currentUser.parkNum) {
         // Store FCM token in Firebase under this park
@@ -1452,17 +1490,21 @@
      SERVICE WORKER & PWA INSTALLATION
 ══════════════════════════════════════════════════════════════ -->
 <script>
-  // Register Service Worker
+  // Register Service Worker immediately (don't wait for 'load') and expose
+  // the ready registration globally so FCM can bind push messages to it.
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then((registration) => {
-          console.log('✅ Service Worker registered:', registration);
-        })
-        .catch((err) => {
-          console.warn('Service Worker registration failed:', err);
-        });
-    });
+    window._swRegistrationPromise = navigator.serviceWorker.register('sw.js')
+      .then(() => navigator.serviceWorker.ready)
+      .then((registration) => {
+        console.log('✅ Service Worker ready:', registration);
+        return registration;
+      })
+      .catch((err) => {
+        console.warn('Service Worker registration failed:', err);
+        return null;
+      });
+  } else {
+    window._swRegistrationPromise = Promise.resolve(null);
   }
 
   // Handle install prompt for PWA
