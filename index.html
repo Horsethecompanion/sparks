@@ -951,6 +951,7 @@
 
   function onStaffSelected() {
     const val = document.getElementById('staffSelect').value;
+    console.log('Staff selected:', val);
     if (val) {
       window.currentUser.name = val;
       document.getElementById('staffGreeting').textContent =
@@ -959,6 +960,7 @@
       document.getElementById('choiceOwner').classList.remove('selected');
       document.getElementById('choiceDriver').classList.remove('selected');
       document.getElementById('staffRoleBtn').disabled = true;
+      console.log('Showing staff-role screen');
       showScreen('screen-staff-role');
     }
   }
@@ -979,13 +981,13 @@
     window.currentUser.role = window.selectedStaffRole;
 
     if (window.selectedStaffRole === 'owner') {
-      // Request notification permission for owners
-      requestNotificationPermission();
-      
-      const staffMember = window.STAFF.find(s => s.name === window.currentUser.name);
-      window.selectedParkNum = staffMember ? staffMember.park : null;
-      buildParkNumGrid();
-      showScreen('screen-park-setup');
+      // Request notification permission and wait for it to complete before advancing
+      requestNotificationPermission().then(() => {
+        const staffMember = window.STAFF.find(s => s.name === window.currentUser.name);
+        window.selectedParkNum = staffMember ? staffMember.park : null;
+        buildParkNumGrid();
+        showScreen('screen-park-setup');
+      });
     } else {
       completeSetup();
     }
@@ -996,17 +998,25 @@
   // ══════════════════════════════
 
   function requestNotificationPermission() {
-    if ('Notification' in window) {
-      if (Notification.permission === 'granted') {
-        registerForPushNotifications();
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            registerForPushNotifications();
-          }
-        });
+    return new Promise((resolve) => {
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          registerForPushNotifications();
+          resolve();
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              registerForPushNotifications();
+            }
+            resolve();
+          });
+        } else {
+          resolve();
+        }
+      } else {
+        resolve();
       }
-    }
+    });
   }
 
   function registerForPushNotifications() {
