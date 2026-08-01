@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#4CAF50"/>
+  <meta name="description" content="Real-time carpark allocation and request system for Sony staff"/>
+  <link rel="manifest" href="manifest.json">
   <title>Sparks ⚡</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -412,17 +415,18 @@
 <header>
   <span>⚡</span>
   <h1>Sparks</h1>
+  <button id="installAppBtn" onclick="installApp()" style="display: none; margin-left: auto; background: #4CAF50; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">📲 Install</button>
   <div class="user-badge" id="userBadge" onclick="resetUser()">Set up →</div>
 </header>
 <div class="toast" id="toast"></div>
-<!-- SCREEN 1a: Who are you? -->
+<!-- SCREEN 1a: Who are you? (staff only) -->
 <div class="screen active" id="screen-who">
   <div class="card">
     <h2>Welcome to Sparks ⚡</h2>
     <p class="subtitle">Sony carpark sharing — quick, simple, live.</p>
     <label>Select your name</label>
     <select id="staffSelect" onchange="onStaffSelected()">
-      <option value="">— I'm a staff member —</option>
+      <option value="">— Choose your name —</option>
       <option value="Teri">Teri</option>
       <option value="Luke">Luke</option>
       <option value="Richard">Richard</option>
@@ -441,8 +445,7 @@
       <option value="Chris">Chris</option>
       <option value="Jenny">Jenny</option>
     </select>
-    <div class="divider">or</div>
-    <button class="btn-visitor" onclick="goVisitor()">👤 I'm a Visitor</button>
+    <p style="color: #666; font-size: 0.8rem; margin-top: 16px;">This is for Sony staff only. Guests should check with their host.</p>
   </div>
 </div>
 <!-- SCREEN 1b: Staff role choice -->
@@ -484,38 +487,6 @@
     <button class="btn-back" onclick="showScreen('screen-staff-role')">← Back</button>
   </div>
 </div>
-<!-- SCREEN 1d: Visitor -->
-<div class="screen" id="screen-visitor">
-  <div class="card">
-    <h2>Welcome! 👋</h2>
-    <p class="subtitle">Who are you visiting today?</p>
-    <label>Guest of...</label>
-    <select id="guestOfSelect" onchange="onGuestSelected()">
-      <option value="">— Select a staff member —</option>
-      <option value="Teri">Teri</option>
-      <option value="Luke">Luke</option>
-      <option value="Richard">Richard</option>
-      <option value="Tim">Tim</option>
-      <option value="Kevin">Kevin</option>
-      <option value="Dan">Dan</option>
-      <option value="Rob">Rob</option>
-      <option value="Andrew">Andrew</option>
-      <option value="Mark Churton">Mark Churton</option>
-      <option value="Aaron">Aaron</option>
-      <option value="Rafael">Rafael</option>
-      <option value="Jo">Jo</option>
-      <option value="Sam">Sam</option>
-      <option value="Mark F">Mark F</option>
-      <option value="Jeffrey">Jeffrey</option>
-      <option value="Chris">Chris</option>
-      <option value="Jenny">Jenny</option>
-    </select>
-    <button class="btn-primary" id="guestContinueBtn" onclick="confirmVisitor()" disabled>
-      Continue →
-    </button>
-    <button class="btn-back" onclick="showScreen('screen-who')">← Back</button>
-  </div>
-</div>
 <!-- SCREEN 2: Carpark Grid -->
 <div class="screen" id="screen-grid">
   <div class="status-banner" id="statusBanner"></div>
@@ -551,8 +522,12 @@
   <div class="modal">
     <h3>Request this park?</h3>
     <p id="requestModalText">Send a request to the park owner?</p>
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 6px;">Guest name (optional)</label>
+      <input type="text" id="guestNameInput" placeholder="e.g., Maria (visiting)" style="width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #333; border-radius: 6px; color: #f0f0f0; font-size: 0.9rem;">
+    </div>
     <div class="modal-btns">
-      <button class="btn-yes" onclick="confirmRequest()">✅ Yes, request</button>
+      <button class="btn-yes" onclick="confirmRequest()">✅ Request</button>
       <button class="btn-no" onclick="closeModal()">✗ Cancel</button>
     </div>
   </div>
@@ -562,9 +537,10 @@
   <div class="modal">
     <h3>Park Request 🅿️</h3>
     <p id="approvalModalText">Someone is requesting your park.</p>
+    <p id="approvalGuestText" style="color: #888; font-size: 0.8rem; margin-bottom: 16px;"></p>
     <div class="modal-btns">
-      <button class="btn-yes" onclick="respondToRequest(true)">✅ Yes</button>
-      <button class="btn-no" onclick="respondToRequest(false)">❌ No</button>
+      <button class="btn-yes" onclick="respondToRequest(true)">✅ Approve</button>
+      <button class="btn-no" onclick="respondToRequest(false)">❌ Decline</button>
     </div>
   </div>
 </div>
@@ -875,8 +851,24 @@
   }
 
   // ══════════════════════════════
-  // SCREEN 1a – Who are you?
   // ══════════════════════════════
+  // SCREEN 1a – Who are you? (with localStorage)
+  // ══════════════════════════════
+
+  function checkExistingSetup() {
+    const saved = localStorage.getItem('sparksUserSetup');
+    if (saved) {
+      try {
+        const setup = JSON.parse(saved);
+        window.currentUser = setup;
+        completeSetup();
+        return true;
+      } catch (e) {
+        console.log('Could not restore setup:', e);
+      }
+    }
+    return false;
+  }
 
   function onStaffSelected() {
     const val = document.getElementById('staffSelect').value;
@@ -890,12 +882,6 @@
       document.getElementById('staffRoleBtn').disabled = true;
       showScreen('screen-staff-role');
     }
-  }
-
-  function goVisitor() {
-    document.getElementById('guestOfSelect').value = '';
-    document.getElementById('guestContinueBtn').disabled = true;
-    showScreen('screen-visitor');
   }
 
   // ══════════════════════════════
@@ -914,12 +900,41 @@
     window.currentUser.role = window.selectedStaffRole;
 
     if (window.selectedStaffRole === 'owner') {
+      // Request notification permission for owners
+      requestNotificationPermission();
+      
       const staffMember = window.STAFF.find(s => s.name === window.currentUser.name);
       window.selectedParkNum = staffMember ? staffMember.park : null;
       buildParkNumGrid();
       showScreen('screen-park-setup');
     } else {
       completeSetup();
+    }
+  }
+
+  // ══════════════════════════════
+  // NOTIFICATIONS (FCM)
+  // ══════════════════════════════
+
+  function requestNotificationPermission() {
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        registerForPushNotifications();
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            registerForPushNotifications();
+          }
+        });
+      }
+    }
+  }
+
+  function registerForPushNotifications() {
+    // This will be populated by the Firebase Cloud Messaging script
+    // Once the user has granted permission, we'll store their FCM token
+    if (window._registerForFCM) {
+      window._registerForFCM();
     }
   }
 
@@ -975,29 +990,18 @@
   }
 
   // ══════════════════════════════
-  // SCREEN 1d – Visitor
-  // ══════════════════════════════
-
-  function onGuestSelected() {
-    const val = document.getElementById('guestOfSelect').value;
-    document.getElementById('guestContinueBtn').disabled = !val;
-    if (val) {
-      window.currentUser.guestOf = val;
-      window.currentUser.name = 'Guest of ' + val;
-    }
-  }
-
-  function confirmVisitor() {
-    if (!window.currentUser.guestOf) return;
-    window.currentUser.role = 'visitor';
-    completeSetup();
-  }
-
-  // ══════════════════════════════
   // COMPLETE SETUP → GRID
   // ══════════════════════════════
 
   function completeSetup() {
+    // Save setup to localStorage for persistence
+    localStorage.setItem('sparksUserSetup', JSON.stringify({
+      name: window.currentUser.name,
+      role: window.currentUser.role,
+      parkNum: window.currentUser.parkNum,
+      claimedPark: window.currentUser.claimedPark
+    }));
+
     const firstName = window.currentUser.name.split(' ')[0];
     document.getElementById('userBadge').textContent = '👤 ' + firstName;
 
@@ -1061,6 +1065,7 @@
   function closeModal() {
     document.getElementById('requestModal').classList.remove('active');
     document.getElementById('approvalModal').classList.remove('active');
+    document.getElementById('guestNameInput').value = '';
   }
 
   function confirmRequest() {
@@ -1068,19 +1073,23 @@
     const park = window.PARKS.find(p => p.num === window.pendingRequestPark);
     if (!park) return;
 
+    const guestName = document.getElementById('guestNameInput').value.trim() || null;
+
     firebase_update(
       firebase_ref(window.db, 'parks/' + window.pendingRequestPark),
       {
         status:      'pending',
         requestedBy: window.currentUser.name,
+        guestName:   guestName,
         claimedBy:   null,
       }
     );
 
     closeModal();
+    const guestText = guestName ? ` for ${guestName}` : '';
     showStatusBanner('waiting',
       '⏳ Waiting for ' + park.name +
-      ' to approve Park #' + park.num + '...'
+      ' to approve Park #' + park.num + guestText + '...'
     );
   }
 
@@ -1092,9 +1101,13 @@
     const state = window.parkStates[parkNum];
     if (!state) return;
 
+    const guestText = state.guestName ? ` for ${state.guestName}` : '';
+
     document.getElementById('approvalModalText').textContent =
-      state.requestedBy + ' is requesting your Park #' +
-      parkNum + '. Is it available?';
+      state.requestedBy + ' is requesting your Park #' + parkNum + '.';
+    
+    document.getElementById('approvalGuestText').textContent = guestText ?
+      `Guest: ${state.guestName}` : '(no guest)';
 
     document.getElementById('approvalModal').classList.add('active');
   }
@@ -1111,7 +1124,9 @@
         {
           status:      'occupied',
           claimedBy:   state.requestedBy,
+          claimedByGuest: state.guestName || null,
           requestedBy: null,
+          guestName:   null,
         }
       );
     } else {
@@ -1121,6 +1136,7 @@
           status:      'available',
           claimedBy:   null,
           requestedBy: state.requestedBy + '_rejected',
+          guestName:   null,
         }
       );
     }
@@ -1137,7 +1153,7 @@
 
     firebase_update(
       firebase_ref(window.db, 'parks/' + window.currentUser.claimedPark),
-      { status: 'available', claimedBy: null, requestedBy: null }
+      { status: 'available', claimedBy: null, claimedByGuest: null, requestedBy: null, guestName: null }
     );
 
     window.currentUser.claimedPark = null;
@@ -1165,9 +1181,12 @@
   // ══════════════════════════════
 
   function resetUser() {
+    // Clear localStorage and reset currentUser
+    localStorage.removeItem('sparksUserSetup');
+    
     window.currentUser = {
       name: null, role: null,
-      parkNum: null, guestOf: null,
+      parkNum: null,
       claimedPark: null
     };
     window.selectedStaffRole  = null;
@@ -1238,7 +1257,7 @@
         if (p.yellow && !p.isZone) {
           firebase_update(
             firebase_ref(window.db, 'parks/' + p.num),
-            { status: 'available', claimedBy: null, requestedBy: null }
+            { status: 'available', claimedBy: null, claimedByGuest: null, requestedBy: null, guestName: null }
           );
         }
       });
@@ -1251,22 +1270,127 @@
 
   scheduleAutoReset();
 
+  // Check if user has existing setup saved in localStorage
+  checkExistingSetup();
+
 </script>
 
 <!-- ══════════════════════════════
-     FIREBASE BRIDGE
+     FIREBASE BRIDGE & FCM
 ══════════════════════════════ -->
 <script type="module">
   import { getDatabase, ref, update }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getApp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getMessaging, getToken, onMessage }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
   const db = getDatabase(getApp());
+  const messaging = getMessaging(getApp());
 
   window._fbUpdate = (refPath, data) => update(refPath, data);
   window._fbRef    = (db, path)      => ref(db, path);
   window.db        = db;
+
+  // ══════════════════════════════
+  // FCM REGISTRATION
+  // ══════════════════════════════
+
+  window._registerForFCM = async () => {
+    try {
+      const token = await getToken(messaging, {
+        vapidKey: 'BJ4KK7CtQ0YyQD9S6sEoealIgQVxG6bYzB3ozLACFh0e5buEsw8sRENLKTtBaP9Iz1qj0HCC5e384BrrEDa7bgE'
+      });
+      
+      if (token && window.currentUser.parkNum) {
+        // Store FCM token in Firebase under this park
+        await update(ref(db, 'parks/' + window.currentUser.parkNum), {
+          ownerToken: token,
+          ownerName: window.currentUser.name
+        });
+        console.log('FCM token registered for park #' + window.currentUser.parkNum);
+      }
+    } catch (err) {
+      console.error('Failed to get FCM token:', err);
+    }
+  };
+
+  // Listen for incoming notifications
+  onMessage(messaging, (payload) => {
+    console.log('Notification received:', payload);
+    const notification = payload.notification;
+    
+    // Show a browser notification
+    if (notification) {
+      new Notification(notification.title || 'Sparks ⚡', {
+        body: notification.body,
+        icon: '⚡',
+        badge: '⚡',
+      });
+    }
+  });
+
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SERVICE WORKER & PWA INSTALLATION
+══════════════════════════════════════════════════════════════ -->
+<script>
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker registered:', registration);
+        })
+        .catch((err) => {
+          console.warn('Service Worker registration failed:', err);
+        });
+    });
+  }
+
+  // Handle install prompt for PWA
+  let installPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    console.log('📲 Install prompt available');
+    event.preventDefault();
+    installPrompt = event;
+    
+    // Show install button if it exists
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) {
+      installBtn.style.display = 'block';
+    }
+  });
+
+  // Handle app installed
+  window.addEventListener('appinstalled', () => {
+    console.log('✨ App installed!');
+    installPrompt = null;
+    
+    // Hide install button
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) {
+      installBtn.style.display = 'none';
+    }
+  });
+
+  // Install app button handler
+  function installApp() {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('✅ User accepted install');
+        } else {
+          console.log('❌ User declined install');
+        }
+        installPrompt = null;
+      });
+    }
+  }
 </script>
 
 </body>
