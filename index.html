@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#4CAF50"/>
   <meta name="description" content="Real-time carpark allocation and request system for Sony staff"/>
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-180.png">
   <title>Sparks ⚡</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -490,7 +491,8 @@
 <!-- SCREEN 2: Carpark Grid -->
 <div class="screen" id="screen-grid">
   <div class="status-banner" id="statusBanner"></div>
-  <button class="btn-release" id="releaseBtn" onclick="releasePark()">
+  <div id="pendingRequestsList" style="margin-bottom: 16px;"></div>
+  <button class="btn-release" id="releaseBtn" onclick="releasePark()" style="width: 100%;">
     🚗 Release My Park
   </button>
   <div class="owner-panel" id="ownerPanel" style="display:none">
@@ -663,8 +665,64 @@
     { name: 'Jenny',        park: 48 },
   ];
 
-  // Local park states (synced from Firebase)
-  let parkStates = {};
+  // Track pending requests (stored in state, synced with Firebase)
+  let pendingRequests = {};  // { parkNum: { status: 'pending'|'approved'|'rejected', guestName: '...' } }
+
+  function updatePendingRequests() {
+    const tracked = {};
+    Object.keys(window.parkStates).forEach(parkNum => {
+      const num = parseInt(parkNum);
+      const state = window.parkStates[num];
+      
+      // Is this park requested by current user?
+      if (state.requestedBy === window.currentUser.name) {
+        tracked[num] = {
+          status: state.status,
+          guestName: state.guestName || null
+        };
+      }
+      
+      // Or is it claimed by current user?
+      if (state.claimedBy === window.currentUser.name) {
+        tracked[num] = {
+          status: 'claimed',
+          guestName: state.claimedByGuest || null
+        };
+      }
+    });
+    
+    window.pendingRequests = tracked;
+    updatePendingRequestsUI();
+  }
+
+  function updatePendingRequestsUI() {
+    const container = document.getElementById('pendingRequestsList');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    Object.keys(window.pendingRequests).forEach(parkNum => {
+      const num = parseInt(parkNum);
+      const req = window.pendingRequests[num];
+      const park = window.PARKS.find(p => p.num === num);
+      if (!park) return;
+      
+      const item = document.createElement('div');
+      item.style.cssText = 'padding: 8px; background: #1a1a1a; border-left: 3px solid'; 
+      
+      if (req.status === 'pending') {
+        item.style.borderLeftColor = '#FF9800';
+        const guestText = req.guestName ? ` for ${req.guestName}` : '';
+        item.innerHTML = `<strong>⏳ Park #${num}</strong> ${guestText}<br><small>Waiting for approval</small>`;
+      } else if (req.status === 'claimed') {
+        item.style.borderLeftColor = '#4CAF50';
+        const guestText = req.guestName ? ` (${req.guestName})` : '';
+        item.innerHTML = `<strong>✅ Park #${num}</strong> ${guestText}<br><small>Yours until you release</small>`;
+      }
+      
+      container.appendChild(item);
+    });
+  }
   PARKS.forEach(p => {
     parkStates[p.num] = {
       status:    p.yellow && !p.isZone ? 'available' : 'unavailable',
@@ -700,6 +758,9 @@
         }
       });
     }
+
+    // Update pending requests tracking
+    updatePendingRequests();
 
     // Rebuild map if on grid screen
     if (document.getElementById('screen-grid').classList.contains('active')) {
@@ -975,10 +1036,11 @@
       btn.className = 'park-num-btn';
       btn.textContent = p.num;
 
-      if (takenParks.includes(p.num)) {
+      // Disable if assigned to someone else OR if it's the user's own allocated park
+      if (takenParks.includes(p.num) || p.num === window.currentUser.parkNum) {
         btn.classList.add('taken');
         btn.disabled = true;
-        btn.title = 'Assigned to someone else';
+        btn.title = takenParks.includes(p.num) ? 'Assigned to someone else' : 'Your allocated park';
       } else {
         if (window.selectedParkNum === p.num) {
           btn.classList.add('selected');
@@ -1167,13 +1229,14 @@
   // ══════════════════════════════
 
   function releasePark() {
-    if (!window.currentUser.claimedPark) return;
+    if (!window.currentUser.claimedPark) {
+      showToast('No park to release');
+      return;
+    }
 
-    firebase_update(
-      firebase_ref(window.db, 'parks/' + window.currentUser.claimedPark),
-      { status: 'available', claimedBy: null, claimedByGuest: null, requestedBy: null, guestName: null }
-    );
-
+    const parkNum = window.currentUser.claimedPark;
+    
+    // Clear local state immediately for UI responsiveness
     window.currentUser.claimedPark = null;
     document.getElementById('releaseBtn').style.display = 'none';
 
@@ -1181,7 +1244,19 @@
     banner.className = 'status-banner';
     banner.textContent = '';
 
-    showToast('🚗 Park released. Thanks!');
+    // Update Firebase
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + parkNum),
+      { 
+        status: 'available', 
+        claimedBy: null, 
+        claimedByGuest: null, 
+        requestedBy: null, 
+        guestName: null 
+      }
+    );
+
+    showToast('🚗 Park #' + parkNum + ' released. Thanks!');
   }
 
   // ══════════════════════════════
