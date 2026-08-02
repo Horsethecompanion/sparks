@@ -9,7 +9,7 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <title>Sparks — Sony Carpark</title>
+  <title>SParks — Sony Carpark</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -472,7 +472,7 @@
       <polygon points="78,28 68,50 76,50 66,74 88,46 78,46" fill="#FFB300"/>
     </svg>
   </div>
-  <h1 onclick="onLogoTap()">Sparks</h1>
+  <h1 onclick="onLogoTap()">SParks</h1>
   <button id="installAppBtn" onclick="installApp()" style="display: none; margin-left: auto; background: #4CAF50; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">📲 Install</button>
   <div class="user-badge" id="userBadge" onclick="resetUser()">Set up →</div>
 </header>
@@ -480,7 +480,7 @@
 <!-- SCREEN 1a: Who are you? (staff only) -->
 <div class="screen active" id="screen-who">
   <div class="card">
-    <h2>Welcome to Sparks ⚡</h2>
+    <h2>Welcome to SParks ⚡</h2>
     <p class="subtitle">Sony carpark sharing — quick, simple, live.</p>
     <label>Select your name</label>
     <select id="staffSelect" onchange="onStaffSelected()">
@@ -510,7 +510,7 @@
 <div class="screen" id="screen-staff-role">
   <div class="card">
     <h2 id="staffGreeting">Hi! 👋</h2>
-    <p class="subtitle">How are you using Sparks today?</p>
+    <p class="subtitle">How are you using SParks today?</p>
     <div class="choice-grid">
       <div class="choice-card" id="choiceOwner" onclick="selectStaffRole('owner')">
         <div class="choice-icon">🅿️</div>
@@ -601,7 +601,7 @@
   </div>
 </div>
 
-<!-- ADMIN PANEL - hidden feature, tap the "Sparks" logo/title 5x quickly to unlock -->
+<!-- ADMIN PANEL - hidden feature, tap the "SParks" logo/title 5x quickly to unlock -->
 <div class="modal-overlay" id="adminModal">
   <div class="modal admin-modal">
     <h3>🔧 Admin — All Parks</h3>
@@ -1392,7 +1392,7 @@
   // ══════════════════════════════
   // ADMIN PANEL (hidden feature)
   // ══════════════════════════════
-  // Tap the "Sparks" logo/title 5 times within 2 seconds to unlock.
+  // Tap the "SParks" logo/title 5 times within 2 seconds to unlock.
   // Note: this PIN is just a light deterrent against casual snooping, not
   // real security - it lives in this file's source, and the database is
   // already publicly writable by design. Good enough for an internal
@@ -1726,7 +1726,7 @@
     
     // Show a browser notification
     if (notification) {
-      new Notification(notification.title || 'Sparks ⚡', {
+      new Notification(notification.title || 'SParks ⚡', {
         body: notification.body,
         icon: '⚡',
         badge: '⚡',
