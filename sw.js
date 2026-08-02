@@ -7,7 +7,7 @@
  * - Asset caching for offline support
  */
 
-const CACHE_NAME = 'sparks-v1';
+const CACHE_NAME = 'sparks-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -103,33 +103,47 @@ self.addEventListener('fetch', (event) => {
 // PUSH: Handle incoming FCM notifications
 // ══════════════════════════════════════════════════════════════
 
+// Realtime Database REST endpoint - the 'parks' node has public read/write
+// rules already, so a plain fetch() PATCH works here without any auth,
+// letting Accept/Reject act directly from the notification even if the
+// app itself is fully closed.
+const FIREBASE_DB_URL = 'https://sparks-carpark-default-rtdb.firebaseio.com';
+
 self.addEventListener('push', (event) => {
   console.log('📢 Push notification received:', event);
 
   let notificationData = {
-    title: 'Sparks ⚡',
+    title: 'Sparks',
     body: 'Park update',
-    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect fill="%234CAF50" width="192" height="192"/><text x="96" y="120" font-size="120" font-weight="bold" fill="white" text-anchor="middle">⚡</text></svg>',
-    badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect fill="%234CAF50" width="192" height="192" rx="45"/><text x="96" y="120" font-size="120" font-weight="bold" fill="white" text-anchor="middle">⚡</text></svg>',
+    icon: 'icon-192.png',
+    badge: 'icon-192.png',
     tag: 'sparks-notification',
     requireInteraction: true,
+    data: {},
   };
 
-  // Extract notification data from FCM payload
+  // Extract notification + data payload from FCM
   if (event.data) {
     try {
-      const data = event.data.json();
-      if (data.notification) {
-        notificationData = {
-          ...notificationData,
-          title: data.notification.title || notificationData.title,
-          body: data.notification.body || notificationData.body,
-        };
+      const payload = event.data.json();
+      if (payload.notification) {
+        notificationData.title = payload.notification.title || notificationData.title;
+        notificationData.body = payload.notification.body || notificationData.body;
+      }
+      if (payload.data) {
+        // parkNum / requestedBy / guestName - set by the Cloud Function so
+        // Accept/Reject below know exactly what to update in Firebase.
+        notificationData.data = payload.data;
+        if (payload.data.parkNum) {
+          notificationData.tag = 'park-' + payload.data.parkNum;
+        }
       }
     } catch (err) {
       console.log('Could not parse push data:', err);
     }
   }
+
+  const hasParkNum = !!notificationData.data.parkNum;
 
   event.waitUntil(
     self.registration.showNotification(notificationData.title, {
@@ -138,49 +152,104 @@ self.addEventListener('push', (event) => {
       badge: notificationData.badge,
       tag: notificationData.tag,
       requireInteraction: notificationData.requireInteraction,
-      actions: [
-        {
-          action: 'open',
-          title: 'Open Sparks',
-        },
-        {
-          action: 'close',
-          title: 'Dismiss',
-        },
-      ],
+      data: notificationData.data,
+      // Only offer Accept/Reject when we actually have a park to act on;
+      // fall back to a plain notification otherwise.
+      actions: hasParkNum ? [
+        { action: 'accept', title: '✅ Accept' },
+        { action: 'reject', title: '❌ Reject' },
+      ] : [],
     })
   );
 });
 
 // ══════════════════════════════════════════════════════════════
-// NOTIFICATION CLICK: Focus Sparks window or open it
+// NOTIFICATION CLICK: Accept / Reject inline, or open/focus the app
 // ══════════════════════════════════════════════════════════════
 
 self.addEventListener('notificationclick', (event) => {
   console.log('🔔 Notification clicked:', event.action);
 
+  const data = event.notification.data || {};
+  const action = event.action;
   event.notification.close();
 
-  if (event.action === 'close') {
+  if (action === 'accept' || action === 'reject') {
+    event.waitUntil(handleQuickAction(action, data));
     return;
   }
 
-  // Open or focus Sparks window
+  // Default (tapped the notification body, not a button): open or focus Sparks.
+  // Uses the SW's own registration scope rather than a hardcoded path, so
+  // this keeps working regardless of which subpath Sparks is hosted under.
+  const targetUrl = self.registration.scope;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Check if Sparks is already open
       for (const client of clientList) {
-        if (client.url.includes('/sparks/') && 'focus' in client) {
+        if (client.url.startsWith(targetUrl) && 'focus' in client) {
           return client.focus();
         }
       }
-      // Otherwise open new window
       if (clients.openWindow) {
-        return clients.openWindow('/sparks/');
+        return clients.openWindow(targetUrl);
       }
     })
   );
 });
+
+// Accept or reject a park request directly against Firebase, without
+// needing the app open. Mirrors the same field updates the app itself
+// makes in respondToRequest().
+async function handleQuickAction(action, data) {
+  const parkNum = data.parkNum;
+  if (!parkNum) return;
+
+  const body = action === 'accept'
+    ? {
+        status: 'occupied',
+        claimedBy: data.requestedBy || null,
+        claimedByGuest: data.guestName || null,
+        requestedBy: null,
+        guestName: null,
+      }
+    : {
+        status: 'available',
+        claimedBy: null,
+        requestedBy: (data.requestedBy || '') + '_rejected',
+        guestName: null,
+      };
+
+  try {
+    const res = await fetch(FIREBASE_DB_URL + '/parks/' + parkNum + '.json', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) throw new Error('Firebase PATCH failed: ' + res.status);
+
+    // Confirm the action - the original notification is already closed,
+    // so a fresh one is the only way to give visible feedback here.
+    await self.registration.showNotification(
+      action === 'accept' ? '✅ Approved' : '❌ Declined',
+      {
+        body: action === 'accept'
+          ? 'Park #' + parkNum + ' approved.'
+          : 'Request for Park #' + parkNum + ' declined.',
+        icon: 'icon-192.png',
+        tag: 'park-' + parkNum + '-result',
+      }
+    );
+  } catch (err) {
+    console.error('Quick action failed:', err);
+    await self.registration.showNotification('⚠️ Action failed', {
+      body: 'Could not update Park #' + parkNum + '. Please open Sparks to respond.',
+      icon: 'icon-192.png',
+      tag: 'park-' + parkNum + '-error',
+    });
+  }
+}
 
 // ══════════════════════════════════════════════════════════════
 // MESSAGE: Handle post-messages from clients
