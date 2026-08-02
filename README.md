@@ -1,7 +1,7 @@
-# Sparks 🅿️
+# SParks 🅿️
 ### Sony carpark sharing — quick, simple, live
 
-Sparks lets our team share allocated car parks for the day when they're not needed, instead of sitting empty. If you're not driving in, someone else can borrow your spot — and you get it back automatically overnight.
+SParks lets our team share allocated car parks for the day when they're not needed, instead of sitting empty. If you're not driving in, someone else can borrow your spot — and you get it back automatically overnight.
 
 This doc is a quick intro for anyone using the app, plus a separate section for whoever's managing it.
 
@@ -9,23 +9,23 @@ This doc is a quick intro for anyone using the app, plus a separate section for 
 
 ## Getting started
 
-1. Open the Sparks link (bookmark it, or add it to your home screen — you'll be prompted to install it as an app on your phone).
+1. Open the SParks link (bookmark it, or add it to your home screen — you'll be prompted to install it as an app on your phone).
 2. First time only: pick your name from the list.
-3. Tell it how you're using Sparks today:
+3. Tell it how you're using SParks today:
    - **"I have an allocated park"** — you own a park and want to manage it
    - **"I need a park"** — you're looking to borrow one
-4. That's it — Sparks remembers you after that. You won't need to set up again on that device.
+4. That's it — SParks remembers you after that. You won't need to set up again on that device.
 
 ---
 
 ## If you own a park
 
-Each morning, tell Sparks whether your park is up for grabs:
+Each morning, tell SParks whether your park is up for grabs:
 
 - **Available** — you're not driving in; your park can be borrowed for the day
 - **I'm using it** — you're parked there; it's off-limits
 
-If someone wants to borrow your park, you'll get a notification with **Accept** / **Reject** buttons right there — no need to open the app. Tapping the notification itself will open Sparks instead, if you'd rather look first.
+If someone wants to borrow your park, you'll get a notification with **Accept** / **Reject** buttons right there — no need to open the app. Tapping the notification itself will open SParks instead, if you'd rather look first.
 
 **Important:** turn on notifications when prompted — that's how requests reach you. Without it, you'll only see incoming requests if you happen to have the app open at the time.
 
@@ -33,7 +33,7 @@ Once someone's borrowed your park, it's theirs until *they* release it (or you r
 
 ### Releasing a park you're not using
 
-If you change your mind and need your own park back before someone releases it, or want to force it back to "available", just come back and update your status — Sparks will always let you reclaim your own park.
+If you change your mind and need your own park back before someone releases it, or want to force it back to "available", just come back and update your status — SParks will always let you reclaim your own park.
 
 ---
 
@@ -50,11 +50,11 @@ If you change your mind and need your own park back before someone releases it, 
 
 ## Notifications
 
-Sparks uses push notifications so owners hear about requests immediately, even with the app closed. A couple of notes:
+SParks uses push notifications so owners hear about requests immediately, even with the app closed. A couple of notes:
 
 - You'll be asked to allow notifications once, when you first set up as a park owner. Please say yes — this is the whole point of the app working smoothly.
 - On Android, if notifications ever seem to stop arriving, check **Settings → Apps → Chrome → Battery → Unrestricted** — some phones aggressively restrict background apps by default.
-- On iPhone, notifications need iOS 16.4 or later, and only work if you've added Sparks to your Home Screen (not just visiting it in Safari).
+- On iPhone, notifications need iOS 16.4 or later, and only work if you've added SParks to your Home Screen (not just visiting it in Safari).
 
 ---
 
@@ -64,7 +64,7 @@ There's a hidden admin panel for full override control — useful for blocking o
 
 ### Unlocking it
 
-Tap the **Sparks logo or title** 5 times quickly (within about 2 seconds). You'll be asked for a PIN.
+Tap the **SParks logo or title** 5 times quickly (within about 2 seconds). You'll be asked for a PIN.
 
 > **Default PIN: `2468`**
 > This lives in the app's own code, so treat it as a light deterrent rather than a real lock — anyone with access to the source could find it. That's an acceptable tradeoff for an internal tool like this, but if you ever want it changed, just ask.
