@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carpark Calibrator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+    .container { max-width: 1600px; margin: 0 auto; }
+    h1 { margin-bottom: 20px; font-size: 1.8rem; }
+    .controls {
+      background: #1a1a1a;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    label { font-size: 0.9rem; color: #aaa; }
+    input[type="checkbox"] { cursor: pointer; width: 18px; height: 18px; }
+    button {
+      padding: 10px 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    button:hover { background: #43a047; }
+    button.secondary {
+      background: #2a2a2a;
+      color: #aaa;
+    }
+    button.secondary:hover { background: #333; }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .panel {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 16px;
+      border: 2px solid #2a2a2a;
+    }
+    .panel h2 { font-size: 1.1rem; margin-bottom: 12px; }
+    /* Canvas area */
+    #canvas-container {
+      width: 100%;
+      background: #0a0a0a;
+      border: 2px solid #2a2a2a;
+      border-radius: 8px;
+      position: relative;
+      overflow: auto;
+    }
+    canvas {
+      display: block;
+      cursor: crosshair;
+    }
+    canvas.dragging { cursor: grabbing; }
+    /* Table */
+    .table-scroll {
+      max-height: 600px;
+      overflow-y: auto;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      font-size: 0.85rem;
+      border-collapse: collapse;
+    }
+    th {
+      background: #0f0f0f;
+      padding: 10px;
+      text-align: left;
+      font-weight: 600;
+      color: #aaa;
+      border-bottom: 2px solid #2a2a2a;
+      position: sticky;
+      top: 0;
+    }
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    tr:hover { background: #151515; }
+    input[type="number"] {
+      width: 50px;
+      padding: 4px;
+      background: #2a2a2a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #f0f0f0;
+      text-align: center;
+    }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+    .spot-num { font-weight: 600; color: #4CAF50; }
+    .spot-name { color: #888; font-size: 0.8rem; }
+    .export-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #2a2a2a;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      padding: 12px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      color: #4CAF50;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      resize: vertical;
+    }
+    .copy-btn {
+      width: 100%;
+      margin-top: 8px;
+    }
+    .status {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 8px;
+    }
+    @media (max-width: 1200px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ Carpark Calibrator</h1>
+  
+  <div class="controls">
+    <div class="control-group">
+      <input type="checkbox" id="showBackground" checked>
+      <label for="showBackground">Show reference image</label>
+    </div>
+    <div class="control-group">
+      <input type="checkbox" id="showGrid">
+      <label for="showGrid">Show grid (10px)</label>
+    </div>
+    <div class="control-group">
+      <input type="checkbox" id="snapToGrid">
+      <label for="snapToGrid">Snap to grid</label>
+    </div>
+    <div class="control-group">
+      <input type="checkbox" id="showNumbers" checked>
+      <label for="showNumbers">Show spot numbers</label>
+    </div>
+    <div class="control-group">
+      <label for="rotationSelect" style="margin-right: 8px;">Rotate selected:</label>
+      <select id="rotationSelect" style="width: 120px; padding: 6px; background: #2a2a2a; border: 1px solid #333; border-radius: 4px; color: #f0f0f0;">
+        <option value="">—</option>
+        <option value="-30">-30°</option>
+        <option value="-15">-15°</option>
+        <option value="0">0°</option>
+        <option value="15">15°</option>
+        <option value="30">30°</option>
+      </select>
+    </div>
+    <button class="secondary" onclick="resetAllPositions()">Reset to Original</button>
+    <button class="secondary" onclick="fitCanvasToContent()">Fit Canvas</button>
+  </div>
+
+  <div class="main-grid">
+    <!-- Left: Visual Map -->
+    <div class="panel">
+      <h2>Visual Map</h2>
+      <div id="canvas-container">
+        <canvas id="calibrator-canvas"></canvas>
+      </div>
+      <div class="status" id="status">Click and drag spots to reposition</div>
+    </div>
+
+    <!-- Right: Table & Export -->
+    <div class="panel">
+      <h2>Spot Coordinates</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>X</th>
+              <th>Y</th>
+              <th>W</th>
+              <th>H</th>
+              <th>Angle</th>
+            </tr>
+          </thead>
+          <tbody id="parkTable"></tbody>
+        </table>
+      </div>
+
+      <div class="export-section">
+        <h3 style="font-size: 0.95rem; margin-bottom: 8px;">Export (copy-paste to index.html)</h3>
+        <textarea id="exportCode" readonly></textarea>
+        <button class="copy-btn" onclick="copyExport()">📋 Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PARKS = [
+  { num: 1,  name: 'SME',           x: 10,  y: 620, w: 60, h: 44, angle: 0 },
+  { num: 2,  name: 'Peggie',        x: 10,  y: 574, w: 60, h: 44, angle: 0 },
+  { num: 3,  name: 'Justine',       x: 10,  y: 528, w: 60, h: 44, angle: 0 },
+  { num: 4,  name: 'Rebecca',       x: 10,  y: 482, w: 60, h: 44, angle: 0 },
+  { num: 5,  name: 'Jacinda',       x: 10,  y: 436, w: 60, h: 44, angle: 0 },
+  { num: 6,  name: 'Lizzie',        x: 10,  y: 390, w: 60, h: 44, angle: 0 },
+  { num: 7,  name: 'SME',           x: 10,  y: 344, w: 60, h: 44, angle: 0 },
+  { num: 8,  name: 'SME',           x: 10,  y: 298, w: 60, h: 44, angle: 0 },
+  { num: 9,  name: 'Jaden',         x: 10,  y: 252, w: 60, h: 44, angle: 0 },
+  { num: 10, name: 'Meri',          x: 10,  y: 206, w: 60, h: 44, angle: 0 },
+  { num: 11, name: 'SME',           x: 10,  y: 160, w: 60, h: 44, angle: 0 },
+  { num: 12, name: 'FVLB',          x: 10,  y: 114, w: 60, h: 44, angle: 0 },
+  { num: 13, name: 'Gareth',        x: 75,  y: 10,  w: 30, h: 44, angle: 0 },
+  { num: 14, name: 'Tony',          x: 105, y: 10,  w: 30, h: 44, angle: 0 },
+  { num: 15, name: 'Dani',          x: 135, y: 10,  w: 30, h: 44, angle: 0 },
+  { num: 16, name: 'Hype\nStorage', x: 165, y: 10,  w: 62, h: 60, angle: 0 },
+  { num: 17, name: 'Kristie',       x: 240, y: 10,  w: 32, h: 44, angle: 15 },
+  { num: 18, name: 'Luke',          x: 280, y: 10,  w: 32, h: 44, angle: 15 },
+  { num: 19, name: 'Richard',       x: 320, y: 10,  w: 32, h: 44, angle: 15 },
+  { num: 20, name: 'Teri',          x: 360, y: 10,  w: 32, h: 44, angle: 15 },
+  { num: 21, name: 'Tim',           x: 400, y: 10,  w: 32, h: 44, angle: 15 },
+  { num: 22, name: 'Kevin',         x: 440, y: 10,  w: 32, h: 44, angle: 15 },
+  { num: 23, name: 'Dan',           x: 490, y: 10,  w: 60, h: 44, angle: 0 },
+  { num: 24, name: 'Rob',           x: 490, y: 60,  w: 60, h: 44, angle: 0 },
+  { num: 25, name: 'Andrew',        x: 490, y: 110, w: 60, h: 44, angle: 0 },
+  { num: 26, name: 'Mark C',        x: 490, y: 160, w: 60, h: 44, angle: 0 },
+  { num: 27, name: 'Aaron',         x: 490, y: 210, w: 60, h: 44, angle: 0 },
+  { num: 28, name: 'SEL',           x: 490, y: 260, w: 60, h: 44, angle: 0 },
+  { num: 29, name: 'Rafael',        x: 490, y: 310, w: 60, h: 44, angle: 0 },
+  { num: 30, name: 'Susan',         x: 490, y: 360, w: 60, h: 44, angle: 0 },
+  { num: 31, name: 'Emily',         x: 490, y: 410, w: 60, h: 44, angle: 0 },
+  { num: 32, name: 'SEL',           x: 490, y: 460, w: 60, h: 44, angle: 0 },
+  { num: 33, name: 'FVLB',          x: 490, y: 510, w: 60, h: 44, angle: 0 },
+  { num: 34, name: 'Benefit',       x: 490, y: 560, w: 60, h: 44, angle: 0 },
+  { num: 35, name: 'Jo',            x: 300, y: 390, w: 58, h: 40, angle: 0 },
+  { num: 36, name: 'SEL',           x: 300, y: 436, w: 58, h: 40, angle: 0 },
+  { num: 37, name: 'Sam',           x: 300, y: 482, w: 58, h: 40, angle: 0 },
+  { num: 38, name: 'Mark F',        x: 300, y: 528, w: 58, h: 40, angle: 0 },
+  { num: 39, name: 'BBnT',          x: 300, y: 160, w: 58, h: 40, angle: 0 },
+  { num: 40, name: 'Liv',           x: 300, y: 210, w: 58, h: 40, angle: 0 },
+  { num: 41, name: 'SME',           x: 300, y: 260, w: 58, h: 40, angle: 0 },
+  { num: 42, name: 'Carl',          x: 200, y: 160, w: 58, h: 40, angle: 0 },
+  { num: 43, name: 'Benefit',       x: 200, y: 210, w: 58, h: 40, angle: 0 },
+  { num: 44, name: 'Kim',           x: 200, y: 260, w: 58, h: 40, angle: 0 },
+  { num: 45, name: 'Jeffrey',       x: 200, y: 390, w: 58, h: 40, angle: 0 },
+  { num: 46, name: 'Justin',        x: 200, y: 436, w: 58, h: 40, angle: 0 },
+  { num: 47, name: 'Chris',         x: 200, y: 482, w: 58, h: 40, angle: 0 },
+  { num: 48, name: 'Jenny',         x: 200, y: 528, w: 58, h: 40, angle: 0 },
+  // The central island (Stairs / Lift / Bikes / Service) - NOT a parking spot.
+  // In production this is a separate hardcoded element (see buildMap() in
+  // index.html), not part of the PARKS array. It's included here purely so
+  // you can see it and drag/resize it against the surrounding spots; the
+  // export panel gives you a separate CSS snippet for it below the PARKS code.
+  { num: 'ISLAND', name: 'Stairs / Lift / Bikes / Service', x: 200, y: 310, w: 158, h: 70, angle: 0, isIsland: true },
+];
+
+const ORIGINAL_PARKS = JSON.parse(JSON.stringify(PARKS));
+let parks = JSON.parse(JSON.stringify(PARKS));
+let draggingSpot = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+let backgroundImage = null;
+let selectedSpotNum = null;
+
+const canvas = document.getElementById('calibrator-canvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 560;
+canvas.height = 720;
+
+// Try to load background image from uploaded photo
+async function loadBackgroundImage() {
+  try {
+    // This would be the uploaded image - for now, we'll leave it as optional
+    // User can paste image URL or we'll just work without it
+  } catch (e) {
+    console.log('No background image available');
+  }
+}
+
+function draw() {
+  // Clear canvas
+  ctx.fillStyle = '#141414';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw grid
+  if (document.getElementById('showGrid').checked) {
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= canvas.width; i += 10) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, canvas.height);
+      ctx.stroke();
+    }
+    for (let i = 0; i <= canvas.height; i += 10) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+  }
+
+  // Draw parks
+  parks.forEach(p => {
+    ctx.save();
+    ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+    if (p.angle !== 0) ctx.rotate((p.angle * Math.PI) / 180);
+    ctx.translate(-p.w / 2, -p.h / 2);
+
+    if (p.isIsland) {
+      // Central island (stairs/lift/bikes/service) - not a parking spot
+      ctx.fillStyle = '#2a2a2a';
+      ctx.strokeStyle = '#666';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.fillRect(0, 0, p.w, p.h);
+      ctx.strokeRect(0, 0, p.w, p.h);
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#999';
+      ctx.font = '11px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const lines = ['🚪 Stairs', '🛗 Lift', '🚲 Bikes', '🔧 Service'];
+      lines.forEach((line, i) => {
+        ctx.fillText(line, p.w / 2, p.h / 2 - (lines.length - 1) * 9 + i * 18);
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // Background
+    ctx.fillStyle = '#1a2e1a';
+    ctx.strokeStyle = '#4CAF50';
+    ctx.lineWidth = 2;
+    ctx.fillRect(0, 0, p.w, p.h);
+    ctx.strokeRect(0, 0, p.w, p.h);
+
+    // Number
+    if (document.getElementById('showNumbers').checked) {
+      ctx.fillStyle = '#f0f0f0';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.num, p.w / 2, p.h / 2 - 8);
+    }
+
+    ctx.restore();
+  });
+
+  // Highlight hovered/dragged spot
+  if (draggingSpot) {
+    const p = draggingSpot;
+    ctx.save();
+    ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+    if (p.angle !== 0) ctx.rotate((p.angle * Math.PI) / 180);
+    ctx.translate(-p.w / 2, -p.h / 2);
+    ctx.strokeStyle = '#FF9800';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(0, 0, p.w, p.h);
+    ctx.restore();
+  }
+
+  // Highlight selected spot (via table)
+  if (selectedSpotNum) {
+    const p = parks.find(x => x.num === selectedSpotNum);
+    if (p) {
+      ctx.save();
+      ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+      if (p.angle !== 0) ctx.rotate((p.angle * Math.PI) / 180);
+      ctx.translate(-p.w / 2, -p.h / 2);
+      ctx.strokeStyle = '#2196F3';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(0, 0, p.w, p.h);
+      ctx.restore();
+    }
+  }
+}
+
+function getSpotAtPoint(x, y) {
+  for (let i = parks.length - 1; i >= 0; i--) {
+    const p = parks[i];
+    if (x >= p.x && x <= p.x + p.w && y >= p.y && y <= p.y + p.h) {
+      return p;
+    }
+  }
+  return null;
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  draggingSpot = getSpotAtPoint(x, y);
+  if (draggingSpot) {
+    dragOffsetX = x - draggingSpot.x;
+    dragOffsetY = y - draggingSpot.y;
+    canvas.classList.add('dragging');
+    document.getElementById('status').textContent = `Dragging spot #${draggingSpot.num}`;
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (draggingSpot) {
+    const rect = canvas.getBoundingClientRect();
+    let x = e.clientX - rect.left - dragOffsetX;
+    let y = e.clientY - rect.top - dragOffsetY;
+
+    if (document.getElementById('snapToGrid').checked) {
+      x = Math.round(x / 10) * 10;
+      y = Math.round(y / 10) * 10;
+    }
+
+    draggingSpot.x = Math.max(0, Math.min(x, canvas.width - draggingSpot.w));
+    draggingSpot.y = Math.max(0, Math.min(y, canvas.height - draggingSpot.h));
+
+    updateTable();
+    updateExport();
+    draw();
+  }
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (draggingSpot) {
+    document.getElementById('status').textContent = `Spot #${draggingSpot.num} updated`;
+    canvas.classList.remove('dragging');
+  }
+  draggingSpot = null;
+});
+
+canvas.addEventListener('mouseleave', () => {
+  draggingSpot = null;
+  canvas.classList.remove('dragging');
+});
+
+function updateTable() {
+  const tbody = document.getElementById('parkTable');
+  tbody.innerHTML = '';
+  parks.forEach((p, idx) => {
+    const row = document.createElement('tr');
+    const isSelected = selectedSpotNum === p.num;
+    row.style.background = p.isIsland ? '#241a1a' : (isSelected ? '#1a2e1a' : '');
+    row.style.cursor = 'pointer';
+    row.innerHTML = `
+      <td><span class="spot-num" style="${p.isIsland ? 'background:#666;' : ''}">${p.num}</span></td>
+      <td><span class="spot-name">${p.name}</span></td>
+      <td><input type="number" value="${p.x}" onchange="parks[${idx}].x = parseInt(this.value); draw(); updateExport();"></td>
+      <td><input type="number" value="${p.y}" onchange="parks[${idx}].y = parseInt(this.value); draw(); updateExport();"></td>
+      <td><input type="number" value="${p.w}" onchange="parks[${idx}].w = parseInt(this.value); draw(); updateExport();"></td>
+      <td><input type="number" value="${p.h}" onchange="parks[${idx}].h = parseInt(this.value); draw(); updateExport();"></td>
+      <td><input type="number" value="${p.angle}" min="-180" max="180" ${p.isIsland ? 'disabled title="Not used for the island"' : ''} onchange="parks[${idx}].angle = parseInt(this.value); draw(); updateExport();"></td>
+    `;
+    row.onclick = () => selectSpot(p.num);
+    tbody.appendChild(row);
+  });
+}
+
+function updateExport() {
+  const parksOnly = parks.filter(p => !p.isIsland).map(({ isIsland, ...rest }) => rest);
+  const island = parks.find(p => p.isIsland);
+
+  let code = 'const PARKS = ' + JSON.stringify(parksOnly, null, 2) + ';';
+
+  if (island) {
+    code += '\n\n// Paste this into buildMap() in index.html, replacing the\n' +
+            '// existing island.style.cssText line:\n' +
+            "island.style.cssText = 'left:" + island.x + "px; top:" + island.y +
+            "px; width:" + island.w + "px; height:" + island.h + "px;';";
+  }
+
+  document.getElementById('exportCode').value = code;
+}
+
+function resetAllPositions() {
+  parks = JSON.parse(JSON.stringify(ORIGINAL_PARKS));
+  updateTable();
+  updateExport();
+  draw();
+  document.getElementById('status').textContent = 'Reset to original positions';
+}
+
+function fitCanvasToContent() {
+  let maxX = 0, maxY = 0;
+  parks.forEach(p => {
+    maxX = Math.max(maxX, p.x + p.w);
+    maxY = Math.max(maxY, p.y + p.h);
+  });
+  canvas.width = Math.max(560, maxX + 40);
+  canvas.height = Math.max(720, maxY + 40);
+  draw();
+}
+
+function copyExport() {
+  const textarea = document.getElementById('exportCode');
+  textarea.select();
+  document.execCommand('copy');
+  const btn = event.target;
+  const orig = btn.textContent;
+  btn.textContent = '✓ Copied!';
+  setTimeout(() => btn.textContent = orig, 2000);
+}
+
+function selectSpot(spotNum) {
+  selectedSpotNum = spotNum;
+  updateTable();
+  draw();
+}
+
+function applyRotationToSelected() {
+  const select = document.getElementById('rotationSelect');
+  const angle = select.value;
+  if (angle === '' || !selectedSpotNum) {
+    alert('Please select a spot first');
+    return;
+  }
+  
+  const spot = parks.find(p => p.num === selectedSpotNum);
+  if (spot) {
+    spot.angle = parseInt(angle);
+    updateTable();
+    updateExport();
+    draw();
+    document.getElementById('status').textContent = `Spot #${selectedSpotNum} rotated to ${angle}°`;
+    select.value = '';
+  }
+}
+
+// Event listeners for controls
+document.getElementById('showNumbers').addEventListener('change', draw);
+document.getElementById('showGrid').addEventListener('change', draw);
+document.getElementById('rotationSelect').addEventListener('change', applyRotationToSelected);
+
+// Initialize
+loadBackgroundImage();
+updateTable();
+updateExport();
+draw();
+</script>
+</body>
+</html>

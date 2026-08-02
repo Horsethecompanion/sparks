@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#4CAF50"/>
+  <meta name="theme-color" content="#112240"/>
   <meta name="description" content="Real-time carpark allocation and request system for Sony staff"/>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <title>Sparks ⚡</title>
+  <title>Sparks — Sony Carpark</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -29,6 +31,18 @@
       z-index: 50;
     }
     header h1 { font-size: 1.5rem; letter-spacing: 1px; }
+    .logo-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #112240;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .logo-badge svg { width: 100%; height: 100%; }
     .user-badge {
       margin-left: auto;
       background: #2a2a2a;
@@ -414,7 +428,13 @@
 
 <body>
 <header>
-  <span>⚡</span>
+  <div class="logo-badge">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#112240"/>
+      <text x="42" y="68" font-family="Arial, sans-serif" font-weight="bold" font-size="60" fill="white" text-anchor="middle">P</text>
+      <polygon points="78,28 68,50 76,50 66,74 88,46 78,46" fill="#FFB300"/>
+    </svg>
+  </div>
   <h1>Sparks</h1>
   <button id="installAppBtn" onclick="installApp()" style="display: none; margin-left: auto; background: #4CAF50; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">📲 Install</button>
   <div class="user-badge" id="userBadge" onclick="resetUser()">Set up →</div>
@@ -606,13 +626,13 @@
     { num: 13, name: 'Gareth',        team: 'green',  yellow: false, x: 75,  y: 10,  w: 30, h: 44, angle: 0 },
     { num: 14, name: 'Tony',          team: 'grey',   yellow: false, x: 105, y: 10,  w: 30, h: 44, angle: 0 },
     { num: 15, name: 'Dani',          team: 'green',  yellow: false, x: 135, y: 10,  w: 30, h: 44, angle: 0 },
-    { num: 16, name: 'Hype\nStorage', team: 'grey',   yellow: false, x: 165, y: 10,  w: 70, h: 60, angle: 0, isZone: true },
-    { num: 17, name: 'Kristie',       team: 'blue',   yellow: false, x: 245, y: 10,  w: 30, h: 44, angle: 15 },
-    { num: 18, name: 'Luke',          team: 'yellow', yellow: true,  x: 280, y: 10,  w: 30, h: 44, angle: 15 },
-    { num: 19, name: 'Richard',       team: 'yellow', yellow: true,  x: 315, y: 10,  w: 30, h: 44, angle: 15 },
-    { num: 20, name: 'Teri',          team: 'yellow', yellow: true,  x: 350, y: 10,  w: 30, h: 44, angle: 15 },
-    { num: 21, name: 'Tim',           team: 'yellow', yellow: true,  x: 385, y: 10,  w: 30, h: 44, angle: 15 },
-    { num: 22, name: 'Kevin',         team: 'yellow', yellow: true,  x: 420, y: 10,  w: 30, h: 44, angle: 15 },
+    { num: 16, name: 'Hype\nStorage', team: 'grey',   yellow: false, x: 165, y: 10,  w: 62, h: 60, angle: 0, isZone: true },
+    { num: 17, name: 'Kristie',       team: 'blue',   yellow: false, x: 240, y: 10,  w: 32, h: 44, angle: 15 },
+    { num: 18, name: 'Luke',          team: 'yellow', yellow: true,  x: 280, y: 10,  w: 32, h: 44, angle: 15 },
+    { num: 19, name: 'Richard',       team: 'yellow', yellow: true,  x: 320, y: 10,  w: 32, h: 44, angle: 15 },
+    { num: 20, name: 'Teri',          team: 'yellow', yellow: true,  x: 360, y: 10,  w: 32, h: 44, angle: 15 },
+    { num: 21, name: 'Tim',           team: 'yellow', yellow: true,  x: 400, y: 10,  w: 32, h: 44, angle: 15 },
+    { num: 22, name: 'Kevin',         team: 'yellow', yellow: true,  x: 440, y: 10,  w: 32, h: 44, angle: 15 },
     { num: 23, name: 'Dan',           team: 'yellow', yellow: true,  x: 490, y: 10,  w: 60, h: 44, angle: 0 },
     { num: 24, name: 'Rob',           team: 'yellow', yellow: true,  x: 490, y: 60,  w: 60, h: 44, angle: 0 },
     { num: 25, name: 'Andrew',        team: 'yellow', yellow: true,  x: 490, y: 110, w: 60, h: 44, angle: 0 },
@@ -629,12 +649,12 @@
     { num: 36, name: 'SEL',           team: 'grey',   yellow: false, x: 300, y: 436, w: 58, h: 40, angle: 0 },
     { num: 37, name: 'Sam',           team: 'yellow', yellow: true,  x: 300, y: 482, w: 58, h: 40, angle: 0 },
     { num: 38, name: 'Mark F',        team: 'yellow', yellow: true,  x: 300, y: 528, w: 58, h: 40, angle: 0 },
-    { num: 39, name: 'BBnT',          team: 'grey',   yellow: false, x: 300, y: 220, w: 58, h: 40, angle: 0, isZone: true },
-    { num: 40, name: 'Liv',           team: 'grey',   yellow: false, x: 300, y: 266, w: 58, h: 40, angle: 0 },
-    { num: 41, name: 'SME',           team: 'grey',   yellow: false, x: 300, y: 312, w: 58, h: 40, angle: 0 },
-    { num: 42, name: 'Carl',          team: 'blue',   yellow: false, x: 200, y: 215, w: 58, h: 40, angle: 0 },
-    { num: 43, name: 'Benefit',       team: 'grey',   yellow: false, x: 200, y: 266, w: 58, h: 40, angle: 0, isZone: true },
-    { num: 44, name: 'Kim',           team: 'green',  yellow: false, x: 200, y: 312, w: 58, h: 40, angle: 0 },
+    { num: 39, name: 'BBnT',          team: 'grey',   yellow: false, x: 300, y: 160, w: 58, h: 40, angle: 0, isZone: true },
+    { num: 40, name: 'Liv',           team: 'grey',   yellow: false, x: 300, y: 210, w: 58, h: 40, angle: 0 },
+    { num: 41, name: 'SME',           team: 'grey',   yellow: false, x: 300, y: 260, w: 58, h: 40, angle: 0 },
+    { num: 42, name: 'Carl',          team: 'blue',   yellow: false, x: 200, y: 160, w: 58, h: 40, angle: 0 },
+    { num: 43, name: 'Benefit',       team: 'grey',   yellow: false, x: 200, y: 210, w: 58, h: 40, angle: 0, isZone: true },
+    { num: 44, name: 'Kim',           team: 'green',  yellow: false, x: 200, y: 260, w: 58, h: 40, angle: 0 },
     { num: 45, name: 'Jeffrey',       team: 'yellow', yellow: true,  x: 200, y: 390, w: 58, h: 40, angle: 0 },
     { num: 46, name: 'Justin',        team: 'blue',   yellow: false, x: 200, y: 436, w: 58, h: 40, angle: 0 },
     { num: 47, name: 'Chris',         team: 'yellow', yellow: true,  x: 200, y: 482, w: 58, h: 40, angle: 0 },
@@ -894,7 +914,7 @@
     // Central island
     const island = document.createElement('div');
     island.className = 'central-island';
-    island.style.cssText = 'left:170px; top:220px; width:120px; height:350px;';
+    island.style.cssText = 'left:200px; top:310px; width:158px; height:70px;';
     island.innerHTML = `
       <span>🚪 Stairs</span>
       <span>🛗 Lift</span>

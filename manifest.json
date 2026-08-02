@@ -6,7 +6,7 @@
   "scope": "/sparks/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#4CAF50",
+  "theme_color": "#112240",
   "background_color": "#0f0f0f",
   "icons": [
     {
@@ -30,13 +30,13 @@
   ],
   "screenshots": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%230f0f0f' width='540' height='720'/><text x='270' y='360' font-size='80' fill='%234CAF50' text-anchor='middle'>Sparks</text><text x='270' y='420' font-size='20' fill='%23aaa' text-anchor='middle'>Carpark Sharing</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%230f0f0f' width='540' height='720'/><text x='270' y='360' font-size='80' fill='%23FFB300' text-anchor='middle'>Sparks</text><text x='270' y='420' font-size='20' fill='%23aaa' text-anchor='middle'>Sony Carpark Sharing</text></svg>",
       "sizes": "540x720",
       "type": "image/svg+xml",
       "form_factor": "narrow"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect fill='%230f0f0f' width='1280' height='720'/><text x='640' y='360' font-size='80' fill='%234CAF50' text-anchor='middle'>Sparks</text><text x='640' y='420' font-size='20' fill='%23aaa' text-anchor='middle'>Carpark Sharing</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect fill='%230f0f0f' width='1280' height='720'/><text x='640' y='360' font-size='80' fill='%23FFB300' text-anchor='middle'>Sparks</text><text x='640' y='420' font-size='20' fill='%23aaa' text-anchor='middle'>Sony Carpark Sharing</text></svg>",
       "sizes": "1280x720",
       "type": "image/svg+xml",
       "form_factor": "wide"
