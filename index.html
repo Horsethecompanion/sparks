@@ -401,6 +401,43 @@
       font-size: 1rem; font-weight: 700; cursor: pointer;
     }
 
+    /* ── Admin panel (hidden feature) ── */
+    .modal.admin-modal {
+      max-width: 480px;
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .admin-park-list {
+      overflow-y: auto;
+      flex: 1;
+      margin: 0 -8px 4px;
+      padding: 0 8px;
+    }
+    .admin-park-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .admin-park-row:last-child { border-bottom: none; }
+    .admin-park-info { flex: 1; min-width: 0; }
+    .admin-park-info .anum { font-weight: 700; color: #f0f0f0; }
+    .admin-park-info .astatus { display: block; font-size: 0.75rem; color: #888; margin-top: 2px; }
+    .admin-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .admin-btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+      white-space: nowrap;
+    }
+
     /* ── Toast ── */
     .toast {
       position: fixed;
@@ -428,14 +465,14 @@
 
 <body>
 <header>
-  <div class="logo-badge">
+  <div class="logo-badge" onclick="onLogoTap()">
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <rect width="100" height="100" rx="22" fill="#112240"/>
       <text x="42" y="68" font-family="Arial, sans-serif" font-weight="bold" font-size="60" fill="white" text-anchor="middle">P</text>
       <polygon points="78,28 68,50 76,50 66,74 88,46 78,46" fill="#FFB300"/>
     </svg>
   </div>
-  <h1>Sparks</h1>
+  <h1 onclick="onLogoTap()">Sparks</h1>
   <button id="installAppBtn" onclick="installApp()" style="display: none; margin-left: auto; background: #4CAF50; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">📲 Install</button>
   <div class="user-badge" id="userBadge" onclick="resetUser()">Set up →</div>
 </header>
@@ -561,6 +598,19 @@
       <button class="btn-yes" onclick="respondToRequest(true)">✅ Approve</button>
       <button class="btn-no" onclick="respondToRequest(false)">❌ Decline</button>
     </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL - hidden feature, tap the "Sparks" logo/title 5x quickly to unlock -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal admin-modal">
+    <h3>🔧 Admin — All Parks</h3>
+    <p>Full override access — changes apply immediately for everyone.</p>
+    <div id="adminParkList" class="admin-park-list"></div>
+    <div class="modal-btns" style="margin-top:16px;">
+      <button class="btn-no" onclick="closeAdminModal()" style="flex:1;">Close</button>
+    </div>
+    <button onclick="exitAdminMode()" style="width:100%; margin-top:8px; background:none; border:none; color:#666; font-size:0.75rem; cursor:pointer; padding:6px;">Exit admin mode on this device</button>
   </div>
 </div>
 
@@ -854,6 +904,12 @@
     // Rebuild map if on grid screen
     if (document.getElementById('screen-grid').classList.contains('active')) {
       buildMap();
+    }
+
+    // Keep the admin panel live if it's currently open
+    const adminModalEl = document.getElementById('adminModal');
+    if (adminModalEl && adminModalEl.classList.contains('active') && window.renderAdminPanel) {
+      window.renderAdminPanel();
     }
 
     // Check each park for status changes relevant to the current user (as requester)
@@ -1331,6 +1387,164 @@
     const banner = document.getElementById('statusBanner');
     banner.className = 'status-banner ' + type;
     banner.textContent = message;
+  }
+
+  // ══════════════════════════════
+  // ADMIN PANEL (hidden feature)
+  // ══════════════════════════════
+  // Tap the "Sparks" logo/title 5 times within 2 seconds to unlock.
+  // Note: this PIN is just a light deterrent against casual snooping, not
+  // real security - it lives in this file's source, and the database is
+  // already publicly writable by design. Good enough for an internal
+  // office tool; change ADMIN_PIN below if you want a different code.
+  const ADMIN_PIN = '2468';
+  let logoTapCount = 0;
+  let logoTapTimer = null;
+
+  // Sticky across refresh/reopen - once unlocked, stays unlocked on this
+  // device until someone explicitly exits from inside the panel.
+  window.isAdminMode = localStorage.getItem('sparksAdminMode') === 'true';
+
+  window.onLogoTap = function () {
+    logoTapCount++;
+    clearTimeout(logoTapTimer);
+    logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 2000);
+
+    if (logoTapCount >= 5) {
+      logoTapCount = 0;
+      if (window.isAdminMode) {
+        // Already unlocked on this device - just reopen, no need to re-enter PIN
+        openAdminModal();
+      } else {
+        promptAdminUnlock();
+      }
+    }
+  };
+
+  function promptAdminUnlock() {
+    const pin = prompt('Admin PIN:');
+    if (pin === null) return; // cancelled
+    if (pin === ADMIN_PIN) {
+      window.isAdminMode = true;
+      localStorage.setItem('sparksAdminMode', 'true');
+      showToast('🔧 Admin mode unlocked');
+      openAdminModal();
+    } else {
+      showToast('Incorrect PIN');
+    }
+  }
+
+  window.openAdminModal = function () {
+    renderAdminPanel();
+    document.getElementById('adminModal').classList.add('active');
+  };
+
+  window.closeAdminModal = function () {
+    document.getElementById('adminModal').classList.remove('active');
+  };
+
+  window.exitAdminMode = function () {
+    window.isAdminMode = false;
+    localStorage.removeItem('sparksAdminMode');
+    closeAdminModal();
+    showToast('Admin mode exited');
+  };
+
+  function renderAdminPanel() {
+    const container = document.getElementById('adminParkList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    window.PARKS.filter(p => !p.isZone).forEach(p => {
+      const state = (window.parkStates && window.parkStates[p.num]) || {};
+
+      const row = document.createElement('div');
+      row.className = 'admin-park-row';
+
+      const info = document.createElement('div');
+      info.className = 'admin-park-info';
+      let who = '';
+      if (state.status === 'occupied' && state.claimedBy) {
+        who = ' — ' + state.claimedBy + (state.claimedByGuest ? ' (' + state.claimedByGuest + ')' : '');
+      } else if (state.status === 'pending' && state.requestedBy) {
+        who = ' — pending: ' + state.requestedBy;
+      }
+      info.innerHTML =
+        '<span class="anum">#' + p.num + ' ' + p.name + '</span>' +
+        '<span class="astatus">' + (state.status || 'unavailable') + who + '</span>';
+
+      const actions = document.createElement('div');
+      actions.className = 'admin-actions';
+
+      // Enable/Disable toggle - independent override, doesn't touch who owns it
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'admin-btn';
+      if (state.status === 'unavailable') {
+        toggleBtn.textContent = 'Enable';
+        toggleBtn.style.background = '#4CAF50';
+        toggleBtn.onclick = () => adminSetStatus(p.num, 'available');
+      } else {
+        toggleBtn.textContent = 'Disable';
+        toggleBtn.style.background = '#757575';
+        toggleBtn.onclick = () => adminSetStatus(p.num, 'unavailable');
+      }
+      actions.appendChild(toggleBtn);
+
+      // Allocate directly to a visitor
+      const allocBtn = document.createElement('button');
+      allocBtn.className = 'admin-btn';
+      allocBtn.textContent = 'Allocate';
+      allocBtn.style.background = '#2196F3';
+      allocBtn.onclick = () => adminAllocateToVisitor(p.num);
+      actions.appendChild(allocBtn);
+
+      // Force-clear whatever's currently going on with this park
+      if (state.status === 'occupied' || state.status === 'pending') {
+        const clearBtn = document.createElement('button');
+        clearBtn.className = 'admin-btn';
+        clearBtn.textContent = 'Clear';
+        clearBtn.style.background = '#F44336';
+        clearBtn.onclick = () => adminForceRelease(p.num);
+        actions.appendChild(clearBtn);
+      }
+
+      row.appendChild(info);
+      row.appendChild(actions);
+      container.appendChild(row);
+    });
+  }
+
+  function adminSetStatus(parkNum, status) {
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + parkNum),
+      { status: status, claimedBy: null, claimedByGuest: null, requestedBy: null, guestName: null }
+    );
+    showToast('Park #' + parkNum + ' set to ' + status);
+  }
+
+  function adminAllocateToVisitor(parkNum) {
+    const visitorName = prompt('Visitor / guest name for Park #' + parkNum + ':');
+    if (!visitorName) return;
+
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + parkNum),
+      {
+        status: 'occupied',
+        claimedBy: 'Office Manager',
+        claimedByGuest: visitorName,
+        requestedBy: null,
+        guestName: null
+      }
+    );
+    showToast('Park #' + parkNum + ' allocated to ' + visitorName);
+  }
+
+  function adminForceRelease(parkNum) {
+    firebase_update(
+      firebase_ref(window.db, 'parks/' + parkNum),
+      { status: 'available', claimedBy: null, claimedByGuest: null, requestedBy: null, guestName: null }
+    );
+    showToast('Park #' + parkNum + ' cleared');
   }
 
   // ══════════════════════════════
