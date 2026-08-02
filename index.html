@@ -1420,7 +1420,7 @@
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getApp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getMessaging, getToken, onMessage }
+  import { getMessaging, getToken, deleteToken, onMessage }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
   const db = getDatabase(getApp());
@@ -1454,6 +1454,17 @@
         console.warn('No Service Worker registration available - background notifications will not work');
       }
 
+      // Force a clean re-subscription: getToken() caches tokens internally, so
+      // simply calling it again can hand back an old, already-dead token
+      // (e.g. one registered before this SW-binding fix existed). Deleting
+      // first guarantees we get a genuinely fresh one bound to the CURRENT
+      // service worker.
+      try {
+        await deleteToken(messaging);
+      } catch (delErr) {
+        // No existing token to delete, or it was already invalid - fine to ignore
+      }
+
       const token = await getToken(messaging, tokenOptions);
       
       if (token && window.currentUser.parkNum) {
@@ -1462,10 +1473,15 @@
           ownerToken: token,
           ownerName: window.currentUser.name
         });
-        console.log('FCM token registered for park #' + window.currentUser.parkNum);
+        console.log('✅ FCM token registered for park #' + window.currentUser.parkNum + ':', token.substring(0, 24) + '...');
+        if (window.showToast) window.showToast('🔔 Notifications enabled for Park #' + window.currentUser.parkNum);
+      } else if (!token) {
+        console.warn('getToken() returned no token');
+        if (window.showToast) window.showToast('⚠️ Could not enable notifications - check browser permission for this site');
       }
     } catch (err) {
       console.error('Failed to get FCM token:', err);
+      if (window.showToast) window.showToast('⚠️ Notification setup failed - see console for details');
     }
   };
 
